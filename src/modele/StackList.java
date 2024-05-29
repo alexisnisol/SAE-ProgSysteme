@@ -1,3 +1,5 @@
+package modele;
+
 import java.util.Stack;
 
 public class StackList<T> extends Stack<T>{
@@ -15,5 +17,9 @@ public class StackList<T> extends Stack<T>{
         }
         super.push(item);
         return true;
+    }
+
+    public boolean isFull(){
+        return this.size() >= this.taille;
     }
 }
