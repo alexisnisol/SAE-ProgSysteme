@@ -9,11 +9,11 @@ public class StackList<T> extends Stack<T>{
         this.taille = taille;
     }
 
-    @Override
-    public T push(T item) {
+    public boolean pushItem(T item) {
         if (this.size() >= this.taille){
-            return null;
+            return false;
         }
-        return super.push(item);
+        super.push(item);
+        return true;
     }
 }
