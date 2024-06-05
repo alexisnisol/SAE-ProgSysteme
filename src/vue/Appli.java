@@ -2,10 +2,13 @@ package vue;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import modele.Pions;
 import modele.Puissance4;
+import modele.exception.PoseImpossibleException;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -28,6 +31,12 @@ public class Appli extends Application {
      * le panel Central qui pourra être modifié selon le mode (accueil ou jeu)
      */
     private BorderPane panelCentral;
+
+    private GridPane grille;
+
+
+    private Label roundP1;
+    private Label roundP2;
 
     /**
      * initialise les attributs (créer le modèle, charge les images)
@@ -83,26 +92,38 @@ public class Appli extends Application {
         Label joueur = new Label("Joueur 1");
         Label nbPions = new Label("Nombre de pions : 21");
 
-        Label round = new Label("A vous de jouer !");
+        roundP1 = new Label("A vous de jouer !");
+        roundP1.setFont(Font.font("Arial", FontWeight.BOLD, 16));
 
-        playerOne.getChildren().addAll(joueur, nbPions, round);
+        playerOne.getChildren().addAll(joueur, nbPions, roundP1);
 
+
+        VBox playerTwo = new VBox();
+        joueur = new Label("Joueur 2");
+        nbPions = new Label("Nombre de pions : 21");
+        roundP2 = new Label("A vous de jouer !");
+        roundP2.setVisible(false);
+        roundP2.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+
+        playerTwo.getChildren().addAll(joueur, nbPions, roundP2);
 
         StackPane plateau = new StackPane();
 
-        GridPane grille = new GridPane();
+        this.grille = new GridPane();
+        
+        grille.setAlignment(Pos.BASELINE_CENTER);
         grille.setPadding(new Insets(10));
         grille.setHgap(10);
         grille.setVgap(10);
 
-        for (int i = 0; i < 6; i++) {
-            for (int j = 0; j < 7; j++) {
-                Button bouton = new Button();
-                boolean isRed = Math.random() < 0.5;
-                bouton.setStyle("-fx-background-color: " + (isRed ? "#ff0000" : "#ffff00"));
+        for (int i = 0; i < modele.getLargeur(); i++) {
+            for (int j = 0; j < modele.getHauteur(); j++) {
+                Button bouton = new Button(i + "," + j);
+
+                bouton.setStyle("-fx-background-color: #ffffff;");                
                 bouton.setMinSize(50, 50);
                 bouton.setShape(new Circle(25));
-                grille.add(bouton, j, i);
+                grille.add(bouton, i, j);
             }
         }
 
@@ -120,18 +141,22 @@ public class Appli extends Application {
         buttons.setSpacing(10);
         for (int i = 0; i < modele.getLargeur(); i++) {
             Button bouton = new Button(""+i);
+            bouton.setOnAction(e -> {
+                try {
+                    modele.poserPions(Integer.parseInt(bouton.getText()));
+                    majAffichage(Integer.parseInt(bouton.getText()));
+                } catch (PoseImpossibleException poseImpossibleException) {
+                    System.out.println("Impossible de poser le pion");
+                }
+            });
+            bouton.setStyle("-fx-background-color: rgba(0, 0, 0, 0.2); -fx-text-fill: white;");
+            bouton.setMinSize(50, 50*(modele.getHauteur()+1));
             buttons.getChildren().add(bouton);
         }
 
+        buttons.setAlignment(Pos.BASELINE_CENTER);
+
         plateau.getChildren().add(buttons);
-
-
-        VBox playerTwo = new VBox();
-        joueur = new Label("Joueur 2");
-        nbPions = new Label("Nombre de pions : 21");
-        round = new Label("xxxxx");
-
-        playerTwo.getChildren().addAll(joueur, nbPions, round);
 
         HBox bottom = new HBox();
 
@@ -201,7 +226,12 @@ public class Appli extends Application {
     /**
      * raffraichit l'affichage selon les données du modèle
      */
-    public void majAffichage(){
+    public void majAffichage(int y){
+        roundP1.setVisible(modele.getJoueurActuel() == Pions.JOUEUR1);
+        roundP2.setVisible(modele.getJoueurActuel() == Pions.JOUEUR2);
+        int x = modele.getPlateau().get(y).size()-1;
+        Button bouton = (Button) this.grille.getChildren().get(y*modele.getHauteur() + modele.getHauteur()-1-x);
+        bouton.setStyle("-fx-background-color: " + (modele.getPlateau().get(y).get(x) == Pions.JOUEUR1 ? "#ff0000" : "#ffff00"));
         /*this.motCrypte.setText(this.modele.getMotCrypte());
         this.dessin.setImage(this.lesImages.get(this.modele.getNbErreursMax()-this.modele.getNbErreursRestants()));
         this.pg.setProgress(1-(double)this.modele.getNbErreursRestants()/this.modele.getNbErreursMax());
