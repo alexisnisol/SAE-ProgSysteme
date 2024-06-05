@@ -1,3 +1,5 @@
+package modele;
+
 import java.util.Stack;
 
 public class StackList<T> extends Stack<T>{
