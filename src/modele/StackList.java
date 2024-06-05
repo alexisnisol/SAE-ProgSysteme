@@ -2,6 +2,8 @@ package modele;
 
 import java.util.Stack;
 
+import Exception.PoseImpossibleException;
+
 public class StackList<T> extends Stack<T>{
 
     private int taille;
@@ -11,12 +13,11 @@ public class StackList<T> extends Stack<T>{
         this.taille = taille;
     }
 
-    public boolean pushItem(T item) {
+    public void pushItem(T item) throws PoseImpossibleException{
         if (this.size() >= this.taille){
-            return false;
+            throw new PoseImpossibleException();
         }
         super.push(item);
-        return true;
     }
 
     public boolean isFull(){
