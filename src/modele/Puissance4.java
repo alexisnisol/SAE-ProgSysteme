@@ -2,8 +2,7 @@ package modele;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import Exception.PoseImpossibleException;
+import modele.exception.PoseImpossibleException;
 
 public class Puissance4{
     private List<StackList<Pions>> plateau;
