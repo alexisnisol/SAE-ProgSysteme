@@ -8,6 +8,7 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import modele.Pions;
 import modele.Puissance4;
+import modele.Puissance4.Status;
 import modele.exception.PoseImpossibleException;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -118,7 +119,7 @@ public class Appli extends Application {
 
         for (int i = 0; i < modele.getLargeur(); i++) {
             for (int j = 0; j < modele.getHauteur(); j++) {
-                Button bouton = new Button(i + "," + j);
+                Button bouton = new Button();
 
                 bouton.setStyle("-fx-background-color: #ffffff;");                
                 bouton.setMinSize(50, 50);
@@ -140,11 +141,21 @@ public class Appli extends Application {
         buttons.setPadding(new Insets(10));
         buttons.setSpacing(10);
         for (int i = 0; i < modele.getLargeur(); i++) {
-            Button bouton = new Button(""+i);
+            Button bouton = new Button();
+            int index = i;
             bouton.setOnAction(e -> {
                 try {
-                    modele.poserPions(Integer.parseInt(bouton.getText()));
-                    majAffichage(Integer.parseInt(bouton.getText()));
+                    Status st = modele.poserPions(index);
+                    switch (st) {
+                        case GAGNE:
+                            popUpMessageGagne().show();
+                            System.out.println("aaa");
+                            break;
+                    
+                        default:
+                            break;
+                    }
+                    majAffichage(index);
                 } catch (PoseImpossibleException poseImpossibleException) {
                     System.out.println("Impossible de poser le pion");
                 }
@@ -283,7 +294,7 @@ public class Appli extends Application {
      */
     public Alert popUpMessageGagne(){
         Alert alert = new Alert(Alert.AlertType.INFORMATION);        
-        alert.setTitle("Jeu du Pendu");
+        alert.setTitle("Jeu du Puissance 4");
         alert.setHeaderText("Vous avez gagné :)");
         alert.setContentText("Bravo vous avez gagné !");
         return alert;
