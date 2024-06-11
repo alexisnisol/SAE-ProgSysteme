@@ -55,7 +55,7 @@ public class Puissance4{
             this.plateau.get(indice).pushItem(joueurActuel);
             Status status = this.isWon(indice);
             this.joueurActuel = this.joueurActuel == Pions.JOUEUR1 ? Pions.JOUEUR2 : Pions.JOUEUR1;
-            if (this.matchNul()){
+            if (status == Status.CONTINUER && this.matchNul()){
                 return Status.NULL;
             }
             return status; // continuer ou est gagné
@@ -168,11 +168,11 @@ public class Puissance4{
      * @return true si le joueur à gagné en colonne, false sinon
      */
     public boolean isWonColonne(int lastPlayed){
-        int nbPions = 1;
+        int nbPions = 0;
         StackList<Pions> pile = this.plateau.get(lastPlayed);
         boolean stop = false;
-        int indice = pile.size();
-        while (!stop && indice < pile.size()){
+        int indice = pile.size()-1;
+        while (!stop && indice >= 0){
             if (pile.get(indice) == joueurActuel){
                 nbPions++;
             } else {
