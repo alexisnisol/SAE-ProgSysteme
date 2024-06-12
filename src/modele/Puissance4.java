@@ -1,7 +1,10 @@
 package modele;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import modele.exception.PoseImpossibleException;
 
 public class Puissance4{
@@ -10,12 +13,10 @@ public class Puissance4{
     private int largeur;
 
     private Pions joueurActuel;
+    private Map<Pions, Integer> nbPions;
 
     public Puissance4(){
-        this.plateau = new ArrayList<>();
-        this.largeur = 7;
-        this.hauteur = 6;
-        this.initPlateau();
+        this(7, 6);
     }
 
     public Puissance4(int largeur, int hauteur){
@@ -36,7 +37,11 @@ public class Puissance4{
      * initialisation du plateau
      */
     private void initPlateau(){
+        this.plateau = new ArrayList<>();
         this.joueurActuel = Pions.JOUEUR1;
+        this.nbPions = new HashMap<>();
+        this.nbPions.put(Pions.JOUEUR1, 21);
+        this.nbPions.put(Pions.JOUEUR2, 21);
         StackList<Pions> pile;
         for (int i = 0; i < this.largeur; ++i) {
             pile = new StackList<>(this.hauteur);
@@ -53,15 +58,29 @@ public class Puissance4{
     public Status poserPions(int indice) throws PoseImpossibleException{
         try {
             this.plateau.get(indice).pushItem(joueurActuel);
+
+            int nbPionsActuel = this.nbPions.get(joueurActuel);
+            this.nbPions.put(joueurActuel, nbPionsActuel-1);
+
             Status status = this.isWon(indice);
-            this.joueurActuel = this.joueurActuel == Pions.JOUEUR1 ? Pions.JOUEUR2 : Pions.JOUEUR1;
-            if (status == Status.CONTINUER && this.matchNul()){
-                return Status.NULL;
+            if(status == Status.CONTINUER){
+                if(this.matchNul()){
+                    return Status.NULL;
+                }
+                this.joueurActuel = switchPlayer(this.joueurActuel);
             }
             return status; // continuer ou est gagné
         } catch (PoseImpossibleException e) {
             throw e;
         }
+    }
+
+    public static Pions switchPlayer(Pions joueurActuel){
+        return joueurActuel == Pions.JOUEUR1 ? Pions.JOUEUR2 : Pions.JOUEUR1;
+    }
+
+    public Map<Pions, Integer> getNbPions(){
+        return this.nbPions;
     }
 
     public Pions getJoueurActuel(){
