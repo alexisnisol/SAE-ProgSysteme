@@ -9,6 +9,8 @@ import javafx.stage.Stage;
 import modele.Pions;
 import modele.Puissance4;
 import modele.Puissance4.Status;
+import modele.controller.BoutonControlleur;
+import modele.controller.BoutonHoverProperty;
 import modele.exception.PoseImpossibleException;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -17,7 +19,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-
 import java.io.File;
 
 /**
@@ -36,6 +37,8 @@ public class Appli extends Application {
     private GridPane grille;
 
 
+    private Label pionsP1;
+    private Label pionsP2;
     private Label roundP1;
     private Label roundP2;
 
@@ -45,6 +48,10 @@ public class Appli extends Application {
     @Override
     public void init() {
         this.modele = new Puissance4();
+    }
+
+    public Puissance4 getModele(){
+        return this.modele;
     }
 
     /**
@@ -91,22 +98,22 @@ public class Appli extends Application {
 
         VBox playerOne = new VBox();
         Label joueur = new Label("Joueur 1");
-        Label nbPions = new Label("Nombre de pions : 21");
+        pionsP1 = new Label("Nombre de pions : 21");
 
         roundP1 = new Label("A vous de jouer !");
         roundP1.setFont(Font.font("Arial", FontWeight.BOLD, 16));
 
-        playerOne.getChildren().addAll(joueur, nbPions, roundP1);
+        playerOne.getChildren().addAll(joueur, pionsP1, roundP1);
 
 
         VBox playerTwo = new VBox();
         joueur = new Label("Joueur 2");
-        nbPions = new Label("Nombre de pions : 21");
+        pionsP2 = new Label("Nombre de pions : 21");
         roundP2 = new Label("A vous de jouer !");
         roundP2.setVisible(false);
         roundP2.setFont(Font.font("Arial", FontWeight.BOLD, 16));
 
-        playerTwo.getChildren().addAll(joueur, nbPions, roundP2);
+        playerTwo.getChildren().addAll(joueur, pionsP2, roundP2);
 
         StackPane plateau = new StackPane();
 
@@ -120,7 +127,7 @@ public class Appli extends Application {
         for (int i = 0; i < modele.getLargeur(); i++) {
             for (int j = 0; j < modele.getHauteur(); j++) {
                 Button bouton = new Button();
-
+                
                 bouton.setStyle("-fx-background-color: #ffffff;");                
                 bouton.setMinSize(50, 50);
                 bouton.setShape(new Circle(25));
@@ -142,25 +149,11 @@ public class Appli extends Application {
         buttons.setSpacing(10);
         for (int i = 0; i < modele.getLargeur(); i++) {
             Button bouton = new Button();
-            int index = i;
-            bouton.setOnAction(e -> {
-                try {
-                    Status st = modele.poserPions(index);
-                    switch (st) {
-                        case GAGNE:
-                            popUpMessageGagne().show();
-                            System.out.println("aaa");
-                            break;
-                    
-                        default:
-                            break;
-                    }
-                    majAffichage(index);
-                } catch (PoseImpossibleException poseImpossibleException) {
-                    System.out.println("Impossible de poser le pion");
-                }
-            });
-            bouton.setStyle("-fx-background-color: rgba(0, 0, 0, 0.2); -fx-text-fill: white;");
+            bouton.setStyle("-fx-background-color: rgba(0, 0, 0, 0.0);");
+
+            bouton.hoverProperty().addListener(new BoutonHoverProperty(bouton));
+                
+            bouton.setOnAction(new BoutonControlleur(this, i));
             bouton.setMinSize(50, 50*(modele.getHauteur()+1));
             buttons.getChildren().add(bouton);
         }
@@ -224,6 +217,7 @@ public class Appli extends Application {
      * change le mode de la vue pour le jeu
      */
     public void modeJeu(){
+        this.modele.reset();
         this.panelCentral.setCenter(this.fenetreJeu());
     }
 
@@ -238,6 +232,8 @@ public class Appli extends Application {
      * raffraichit l'affichage selon les données du modèle
      */
     public void majAffichage(int y){
+        pionsP1.setText("Nombre de pionss : " + this.modele.getNbPions().get(Pions.JOUEUR1));
+        pionsP2.setText("Nombre de pions : " + this.modele.getNbPions().get(Pions.JOUEUR2));
         roundP1.setVisible(modele.getJoueurActuel() == Pions.JOUEUR1);
         roundP2.setVisible(modele.getJoueurActuel() == Pions.JOUEUR2);
         int x = modele.getPlateau().get(y).size()-1;
@@ -277,37 +273,23 @@ public class Appli extends Application {
     }
     
     /**
-     * Affiche une fenêtre popup pour afficher les règles du jeu
+     * Affiche une fenêtre popup
      * @return la fenêtre popup
      */
-    public Alert popUpReglesDuJeu(){
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Jeu du Pendu");
-        alert.setHeaderText("Règles du Jeu");
-        alert.setContentText("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
-        return alert;
-    }
-    
-    /**
-     * Affiche une fenêtre popup pour indiquer que l'utilisateur a gagné
-     * @return la fenêtre popup
-     */
-    public Alert popUpMessageGagne(){
+    public Alert popUpMessage(Status st){
         Alert alert = new Alert(Alert.AlertType.INFORMATION);        
         alert.setTitle("Jeu du Puissance 4");
-        alert.setHeaderText("Vous avez gagné :)");
-        alert.setContentText("Bravo vous avez gagné !");
-        return alert;
-    }
-    
-    /**
-     * Affiche une fenêtre popup pour indiquer que l'utilisateur a perdu
-     * @return la fenêtre popup
-     */
-    public Alert popUpMessagePerdu(){
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Jeu du Pendu");
-        alert.setHeaderText("Vous avez perdu :(");
+        switch (st) {
+            case GAGNE:
+                alert.setHeaderText("Vous avez gagné :)");
+                alert.setContentText("Bravo "+ this.modele.getJoueurActuel() +", vous avez gagné !");
+                break;
+            case NULL:
+                alert.setHeaderText("Vous avez fait match nul !");
+                break;
+            default:
+                break;
+        }
         return alert;
     }
 
