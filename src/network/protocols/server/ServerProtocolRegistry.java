@@ -13,7 +13,13 @@ public class ServerProtocolRegistry {
 
     static {
         ServerProtocolRegistry.commandsList.put(TypeProtocol.CONNECT, (args, player, server) -> {
+
+            //TODO Warning : args[0] is not checked for null => Improve the protocol
             String username = args[0];
+
+            if(playerIsAuthenticated(player)) {
+                return Constant.STATUS_ERR + " Vous êtes déjà connecté : " + player.getName();
+            }
 
             if(Player.isValidPlayerName(username)) {
                 return server.connect(new Player(username));
