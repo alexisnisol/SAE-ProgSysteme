@@ -10,7 +10,7 @@ public class Network {
     private Network() {
     }
 
-    public static String getMessage(Socket socket) {
+    public static String receive(Socket socket) {
         String message = "";
         try {
             InputStreamReader stream = new InputStreamReader(socket.getInputStream());
@@ -22,7 +22,7 @@ public class Network {
         return message;
     }
 
-    public static void sendMessage(String message, Socket socket) {
+    public static void send(String message, Socket socket) {
         try {
             PrintWriter writer = new PrintWriter(socket.getOutputStream());
             writer.println(message);

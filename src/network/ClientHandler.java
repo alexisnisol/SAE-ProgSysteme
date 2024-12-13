@@ -21,7 +21,7 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         String message;
-        while ((message = Network.getMessage(this.socket)) != null) {
+        while ((message = Network.receive(this.socket)) != null) {
             Command command = Command.parse(message);
 
             ServerProtocolRegistry.TypeProtocol typeProtocol = ServerProtocolRegistry.TypeProtocol.getProtocol(command.getName());
@@ -33,7 +33,7 @@ public class ClientHandler implements Runnable {
                 this.player = this.server.getPlayer(command.getArgs()[0]);
             }
 
-            Network.sendMessage(response, this.socket);
+            Network.send(response, this.socket);
         }
     }
 }
