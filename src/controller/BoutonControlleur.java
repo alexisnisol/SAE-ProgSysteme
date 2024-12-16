@@ -5,10 +5,10 @@ import java.util.Optional;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.ButtonType;
-import modele.Puissance4;
-import modele.Puissance4.Status;
-import modele.exception.PoseImpossibleException;
-import vue.Appli;
+import model.Puissance4;
+import model.Puissance4.Status;
+import model.exception.PoseImpossibleException;
+import view.Appli;
 
 public class BoutonControlleur implements EventHandler<ActionEvent>{
 

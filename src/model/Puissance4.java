@@ -1,11 +1,11 @@
-package modele;
+package model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import modele.exception.PoseImpossibleException;
+import model.exception.PoseImpossibleException;
 
 public class Puissance4{
     private List<StackList<Pions>> plateau;

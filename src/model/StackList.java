@@ -1,7 +1,7 @@
-package modele;
+package model;
 
 import java.util.Stack;
-import modele.exception.PoseImpossibleException;
+import model.exception.PoseImpossibleException;
 
 
 public class StackList<T> extends Stack<T>{

@@ -1,4 +1,4 @@
-package modele.exception;
+package model.exception;
 
 
 public class PoseImpossibleException extends Exception{
