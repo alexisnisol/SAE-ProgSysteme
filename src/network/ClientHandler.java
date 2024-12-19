@@ -26,7 +26,7 @@ public class ClientHandler implements Runnable {
 
             ServerProtocolRegistry.TypeProtocol typeProtocol = ServerProtocolRegistry.TypeProtocol.getProtocol(command.getName());
 
-            String response = ServerProtocolRegistry.execute(typeProtocol, command.getArgs(), this.player, this.server);
+            String response = ServerProtocolRegistry.execute(typeProtocol, command.getArgs(), this.player, this.server, this.socket);
 
             //TODO : Improve this
             if (typeProtocol == ServerProtocolRegistry.TypeProtocol.CONNECT && Constant.STATUS_OK.equalsIgnoreCase(response)) {

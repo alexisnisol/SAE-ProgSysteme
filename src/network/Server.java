@@ -1,6 +1,7 @@
 package network;
 
 import network.utils.Constant;
+import network.utils.Network;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -20,6 +21,7 @@ public class Server {
     public Server() {
         try {
             ServerSocket serverSocket = new ServerSocket(Constant.PORT);
+            System.out.println("Serveur démarré sur le port " + Constant.PORT);
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
@@ -52,6 +54,24 @@ public class Server {
         } finally {
             playersLock.readLock().unlock();
         }
+    }
+
+    public String getPlayersList() {
+        playersLock.readLock().lock();
+        try {
+            if (playersList.isEmpty()) {
+                return Constant.STATUS_ERR + " Aucun joueur connecté.";
+            }
+            return Constant.STATUS_OK + " Joueurs connectés : " + String.join(", ", playersList.keySet());
+        } finally {
+            playersLock.readLock().unlock();
+        }
+    }
+
+    public void sendInvitation(Player fromPlayer, Player toPlayer) {
+        // Logique pour envoyer une invitation
+        String invitationMessage = "ASK " + fromPlayer.getName() + " veut jouer avec vous.";
+        Network.send(invitationMessage, toPlayer.getSocket());
     }
 
     public String disconnect(Player player) {
