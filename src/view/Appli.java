@@ -1,4 +1,4 @@
-package vue;
+package view;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -6,10 +6,10 @@ import javafx.geometry.Pos;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-import modele.Pions;
-import modele.Puissance4;
-import modele.Puissance4.Status;
-import modele.exception.PoseImpossibleException;
+import model.Pions;
+import model.Puissance4;
+import model.Puissance4.Status;
+import model.exception.PoseImpossibleException;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
