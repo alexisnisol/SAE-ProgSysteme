@@ -1,8 +1,8 @@
 package network.protocols.server;
 
+import network.ClientHandler;
 import network.Player;
-import network.Server;
 
 public interface IServerProtocol {
-    String execute(String[] args, Player player, Server server);
+    String execute(String[] args, Player player, ClientHandler clientHandler);
 }

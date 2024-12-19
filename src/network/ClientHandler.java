@@ -5,6 +5,7 @@ import network.protocols.server.ServerProtocolRegistry;
 import network.utils.Constant;
 import network.utils.Network;
 
+import java.io.IOException;
 import java.net.Socket;
 
 public class ClientHandler implements Runnable {
@@ -21,19 +22,43 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         String message;
-        while ((message = Network.receive(this.socket)) != null) {
-            Command command = Command.parse(message);
+        try {
+            while ((message = Network.receive(this.socket)) != null) {
+                Command command = Command.parse(message);
 
-            ServerProtocolRegistry.TypeProtocol typeProtocol = ServerProtocolRegistry.TypeProtocol.getProtocol(command.getName());
+                ServerProtocolRegistry.TypeProtocol typeProtocol = ServerProtocolRegistry.TypeProtocol.getProtocol(command.getName());
 
-            String response = ServerProtocolRegistry.execute(typeProtocol, command.getArgs(), this.player, this.server);
+                String response = ServerProtocolRegistry.execute(typeProtocol, command.getArgs(), this.player, this);
 
-            //TODO : Improve this
-            if (typeProtocol == ServerProtocolRegistry.TypeProtocol.CONNECT && Constant.STATUS_OK.equalsIgnoreCase(response)) {
-                this.player = this.server.getPlayer(command.getArgs()[0]);
+                sendMessage(response);
             }
+        } catch (IOException e) {
+            // Client disconnected
+            if (this.player != null) {
+                this.server.disconnect(this.player);
+            }
+        }
+    }
 
-            Network.send(response, this.socket);
+    public Server getServer() {
+        return this.server;
+    }
+
+    public String connect(String username) {
+        Player player = new Player(username);
+        player.setClientHandler(this);
+        String response = this.server.connect(player);
+        if (response.equals(Constant.STATUS_OK)) {
+            this.player = player;
+        }
+        return response;
+    }
+
+    public void sendMessage(String message) {
+        try {
+            Network.send(message, this.socket);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
