@@ -1,5 +1,8 @@
 package network;
 
+import model.Game;
+import network.protocols.Command;
+import network.protocols.client.ClientProtocolRegistry;
 import network.utils.Constant;
 import network.utils.Network;
 
@@ -11,6 +14,7 @@ public class Client {
 
     private Socket socket;
     private boolean quit;
+    private Game game;
 
     public Client() {
         quit = false;
@@ -37,7 +41,19 @@ public class Client {
                 try {
                     while(!quit) {
                         String serverResponse = Network.receive(socket);
-                        System.out.println(serverResponse);
+
+                        Command command = Command.parse(serverResponse);
+
+                        ClientProtocolRegistry.TypeProtocol typeProtocol = ClientProtocolRegistry.TypeProtocol.getProtocol(command.getName());
+
+                        String response = ClientProtocolRegistry.execute(typeProtocol, command.getArgs(), this);
+                        if (response != null) {
+                            if (!response.isEmpty()) {
+                                System.out.println(response);
+                            }
+                        } else {
+                            System.out.println(serverResponse);
+                        }
                     }
                 } catch (IOException e) {
                     System.out.println("Server disconnected");
@@ -55,6 +71,14 @@ public class Client {
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public Game getGame() {
+        return game;
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
     }
 
     public static void main(String[] args) {

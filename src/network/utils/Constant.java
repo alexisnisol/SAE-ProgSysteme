@@ -6,4 +6,5 @@ public class Constant {
 
     public static final String STATUS_OK = "OK";
     public static final String STATUS_ERR = "ERR";
+    public static final String STATUS_EMPTY = "";
 }

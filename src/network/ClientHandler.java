@@ -1,6 +1,7 @@
 package network;
 
 import network.protocols.Command;
+import network.protocols.client.ClientProtocolRegistry;
 import network.protocols.server.ServerProtocolRegistry;
 import network.utils.Constant;
 import network.utils.Network;
@@ -56,7 +57,14 @@ public class ClientHandler implements Runnable {
 
     public void sendMessage(String message) {
         try {
-            Network.send(message, this.socket);
+            Network.send("MSG " + message, this.socket);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void send(ClientProtocolRegistry.TypeProtocol protocol, String[] args) {
+        try {
+            Network.send(protocol.name() + " " + String.join(" ", args), this.socket);
         } catch (IOException e) {
             e.printStackTrace();
         }

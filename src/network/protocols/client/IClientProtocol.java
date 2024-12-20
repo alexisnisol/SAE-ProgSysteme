@@ -1,7 +1,7 @@
 package network.protocols.client;
 
-import network.Player;
+import network.Client;
 
 public interface IClientProtocol {
-    String execute(String[] args, Player player);
+    String execute(String[] args, Client client);
 }
