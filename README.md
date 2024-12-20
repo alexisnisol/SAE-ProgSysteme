@@ -1,10 +1,12 @@
 # SAE-ProgSysteme
 
-## Initialisation du projet
+## Utilisation du projet
+
+### Initialisation du projet
 
 Afin de compiler toutes les classes du projet, exécutez la commande suivante : `./launch.sh`
 
-## Lancement client/serveur
+### Lancement client/serveur
 
 Sur un terminal, exécutez la commande suivante pour lancer le serveur : `./server.sh`
 
@@ -12,7 +14,7 @@ Puis lancez le client sur un autre terminal pour avoir un permier joueur avec la
 
 Afin d'avoir un deuxième joueur, lancez un autre client sur un autre terminal avec la commande suivante : `./client.sh`
 
-## Communication client/serveur
+### Communication client/serveur
 
 Afin de se connecter au serveur, le client doit envoyer un message de type `CONNECT <Pseudo>` au serveur. Le serveur répondra par le message de type `OK`. Si le pseudo est déjà utilisé, le serveur répondra par un message de type `ERR <Message d'erreur>`. 
 
@@ -24,4 +26,15 @@ Le joueur adversaire recevra une invitation de type `Demande de jeu de <PseudoDu
 
 Pour refuser une invitation, le joueur doit envoyer un message de type `DECLINE` au serveur. Le serveur répondra par un message de type `Demande de jeu refusée par <PseudoDuJoueurAdverse>`.
 
-![Simulation de la communication client/serveur](./images/Simulation.png)
+![Simulation de la communication client/serveur](./img/Simulation.png)
+
+## Architecture du projet
+
+### Diagramme de classes modèle
+
+![Diagramme de classes](./img/diagramme_de_classes_puissance_4.png)
+
+### Diagramme de classes réseau
+
+![Diagramme de classes réseau](./img/diagramme_de_classes_client_player_reseau.png)
+
