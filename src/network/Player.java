@@ -1,11 +1,13 @@
 package network;
 
+import model.Game;
+
 public class Player {
 
     private String name;
     private boolean inGame;
     private String pendingRequest;
-    private String currentGame;
+    private String idGame;
     private ClientHandler clientHandler;
 
     public Player(String name) {
@@ -45,11 +47,18 @@ public class Player {
         this.pendingRequest = null;
     }
 
-    public void setInGame() {
+    public boolean setInGame(Game game) {
         if(this.isAvailable()) {
             this.inGame = true;
-            this.currentGame = "";
+            this.idGame = game.getId();
+            game.addPlayer(this);
+            return true;
         }
+        return false;
+    }
+
+    public String getIdGame() {
+        return this.idGame;
     }
 
     @Override

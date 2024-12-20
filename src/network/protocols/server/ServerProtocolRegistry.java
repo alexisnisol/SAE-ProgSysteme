@@ -33,6 +33,7 @@ public class ServerProtocolRegistry {
         ServerProtocolRegistry.commandsList.put(TypeProtocol.ACCEPT, (args, player, clientHandler) -> clientHandler.getServer().acceptRequest(player));
         ServerProtocolRegistry.commandsList.put(TypeProtocol.DECLINE, (args, player, clientHandler) -> clientHandler.getServer().declineRequest(player));
         ServerProtocolRegistry.commandsList.put(TypeProtocol.PLAYERLIST, (args, player, clientHandler) -> clientHandler.getServer().getPlayerList());
+        ServerProtocolRegistry.commandsList.put(TypeProtocol.PLAY, (args, player, clientHandler) -> clientHandler.getServer().play(player, args[0]));
     }
 
     public static String execute(TypeProtocol type, String[] args, Player player, ClientHandler clientHandler) {
@@ -58,6 +59,7 @@ public class ServerProtocolRegistry {
         ACCEPT,
         DECLINE,
         PLAYERLIST,
+        PLAY,
         DEFAULT;
 
         final boolean needAuthentification;
