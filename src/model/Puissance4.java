@@ -6,8 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import model.exception.PoseImpossibleException;
+import network.Player;
 
-public class Puissance4{
+public class Puissance4 extends Game {
     private List<StackList<Pions>> plateau;
     private int hauteur;
     private int largeur;
@@ -15,16 +16,18 @@ public class Puissance4{
     private Pions joueurActuel;
     private Map<Pions, Integer> nbPions;
 
+    private Map<Pions, Player> playersPions;
+
     public Puissance4(){
         this(7, 6);
     }
 
     public Puissance4(int largeur, int hauteur){
-        this.plateau = new ArrayList<>();
+        super();
         this.largeur = largeur;
         this.hauteur = hauteur;
+        this.playersPions = new HashMap<>();
         this.initPlateau();
-        
     }
 
     public enum Status{
@@ -38,6 +41,7 @@ public class Puissance4{
      */
     private void initPlateau(){
         this.plateau = new ArrayList<>();
+
         this.joueurActuel = Pions.JOUEUR1;
         this.nbPions = new HashMap<>();
         this.nbPions.put(Pions.JOUEUR1, 21);
@@ -49,12 +53,29 @@ public class Puissance4{
         }
     }
 
+    @Override
+    public void start(){
+
+        Player player;
+        for (int j = 0; j < this.getPlayers().size(); j++) {
+            try {
+                player = this.getPlayers().get(j);
+                this.playersPions.put(Pions.values()[j], player);
+                System.out.println(this.playersPions);
+            } catch (IndexOutOfBoundsException e) {
+                System.out.println("Erreur : il n'y a pas assez de joueurs");
+                break;
+            }
+        }
+
+    }
+
     /**
      * Poser un pions, retourne si le joueur à gagné ou non
      * @param indice la colonne où le joueur à joué
-     * @param joueur le joueur qui a joué
      * @return true si le joueur à gagné, false sinon
      */
+    @Override
     public Status poserPions(int indice) throws PoseImpossibleException{
         try {
             this.plateau.get(indice).pushItem(joueurActuel);
@@ -83,6 +104,12 @@ public class Puissance4{
         return this.nbPions;
     }
 
+    @Override
+    public Player getPlayer(Pions pions){
+        return this.playersPions.get(pions);
+    }
+
+    @Override
     public Pions getJoueurActuel(){
         return this.joueurActuel;
     }
@@ -303,6 +330,7 @@ public class Puissance4{
                 }
             }
         }
+        str.append("\n");
         return str.toString();
     }
 }
