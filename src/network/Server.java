@@ -19,10 +19,6 @@ public class Server {
     private final ConcurrentMap<String, Player> playersList = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Game> gamesList = new ConcurrentHashMap<>();
 
-    private final ReadWriteLock playersLock = new ReentrantReadWriteLock();
-
-    private final ReadWriteLock gamesLock = new ReentrantReadWriteLock();
-
     public Server() {
         try {
             ServerSocket serverSocket = new ServerSocket(Constant.PORT);
@@ -38,64 +34,44 @@ public class Server {
     }
 
     public String connect(Player player) {
-        playersLock.writeLock().lock();
-        try {
-            if (this.playersList.containsKey(player.getName())) {
-                return Constant.STATUS_ERR + " Le nom est déjà utilisé";
-            }
-            this.playersList.put(player.getName(), player);
-            System.out.println("Client " + player.getName() + " connecté : " + this.playersList);
-            return Constant.STATUS_OK;
-        } finally {
-            playersLock.writeLock().unlock();
+        if (this.playersList.containsKey(player.getName())) {
+            return Constant.STATUS_ERR + " Le nom est déjà utilisé";
         }
+        this.playersList.put(player.getName(), player);
+        System.out.println("Client " + player.getName() + " connecté : " + this.playersList);
+        return Constant.STATUS_OK;
     }
 
     public Player getPlayer(String name) {
-        playersLock.readLock().lock();
-        try {
-            return this.playersList.get(name);
-        } finally {
-            playersLock.readLock().unlock();
-        }
+        return this.playersList.get(name);
     }
 
     public String disconnect(Player player) {
-        playersLock.writeLock().lock();
-        try {
-            this.playersList.remove(player.getName());
-            System.out.println("Client " + player.getName() + " déconnecté : " + this.playersList);
-            return Constant.STATUS_OK;
-        } finally {
-            playersLock.writeLock().unlock();
-        }
+        this.playersList.remove(player.getName());
+        System.out.println("Client " + player.getName() + " déconnecté : " + this.playersList);
+        return Constant.STATUS_OK;
     }
 
     public String playRequest(Player source, String target) {
-        playersLock.readLock().lock();
-        try {
-            if (!source.isAvailable()) {
-                return Constant.STATUS_ERR + " Vous ne pouvez faire une demande de jeu";
-            }
-
-            Player targetPlayer = this.playersList.get(target);
-            if (targetPlayer == null) {
-                return Constant.STATUS_ERR + " Le joueur " + target + " n'existe pas";
-            }
-            if (targetPlayer.equals(source)) {
-                return Constant.STATUS_ERR + " Vous ne pouvez pas vous rejoindre vous-même";
-            }
-            if(!targetPlayer.isAvailable()) {
-                return Constant.STATUS_ERR + " Le joueur " + target + " n'est pas disponible";
-            }
-
-            targetPlayer.setRequest(source);
-            targetPlayer.getClientHandler().sendMessage("Demande de jeu de " + source.getName());
-
-            return Constant.STATUS_OK;
-        } finally {
-            playersLock.readLock().unlock();
+        if (!source.isAvailable()) {
+            return Constant.STATUS_ERR + " Vous ne pouvez faire une demande de jeu";
         }
+
+        Player targetPlayer = this.playersList.get(target);
+        if (targetPlayer == null) {
+            return Constant.STATUS_ERR + " Le joueur " + target + " n'existe pas";
+        }
+        if (targetPlayer.equals(source)) {
+            return Constant.STATUS_ERR + " Vous ne pouvez pas vous rejoindre vous-même";
+        }
+        if(!targetPlayer.isAvailable()) {
+            return Constant.STATUS_ERR + " Le joueur " + target + " n'est pas disponible";
+        }
+
+        targetPlayer.setRequest(source);
+        targetPlayer.getClientHandler().sendMessage("Demande de jeu de " + source.getName());
+
+        return Constant.STATUS_OK;
     }
 
     public String acceptRequest(Player player) {
@@ -117,41 +93,35 @@ public class Server {
     }
 
     public String play(Player player, String column) {
-        gamesLock.readLock().lock();
-        try {
-            Game game = this.gamesList.get(player.getIdGame());
-            if (game == null) {
-                return Constant.STATUS_ERR + " Vous n'êtes pas dans une partie";
-            }
-            try {
-                if(game.getPlayer(game.getJoueurActuel()) != player) {
-                    return Constant.STATUS_ERR + " Ce n'est pas votre tour";
-                }
-
-                Puissance4.Status status = game.poserPions(Integer.parseInt(column));
-                sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.PLAY, column);
-
-                if (status == Puissance4.Status.GAGNE) {
-                    sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.END_GAMES_VICTORY);
-                } else if (status == Puissance4.Status.NULL) {
-                    sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.END_GAMES_DRAW);
-                }
-
-            } catch (NumberFormatException e) {
-                return Constant.STATUS_ERR + " La colonne doit être un nombre";
-            } catch (IllegalArgumentException e) {
-                return Constant.STATUS_ERR + e.getMessage();
-            } catch (PoseImpossibleException e) {
-                return Constant.STATUS_ERR + " La colonne est pleine";
-            }
-            return Constant.STATUS_EMPTY;
-        } finally {
-            gamesLock.readLock().unlock();
+        Game game = this.gamesList.get(player.getIdGame());
+        if (game == null) {
+            return Constant.STATUS_ERR + " Vous n'êtes pas dans une partie";
         }
+        try {
+            if(game.getPlayer(game.getJoueurActuel()) != player) {
+                return Constant.STATUS_ERR + " Ce n'est pas votre tour";
+            }
+
+            Puissance4.Status status = game.poserPions(Integer.parseInt(column));
+            sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.PLAY, column);
+
+            if (status == Puissance4.Status.GAGNE) {
+                sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.END_GAMES_VICTORY);
+            } else if (status == Puissance4.Status.NULL) {
+                sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.END_GAMES_DRAW);
+            }
+
+        } catch (NumberFormatException e) {
+            return Constant.STATUS_ERR + " La colonne doit être un nombre";
+        } catch (IllegalArgumentException e) {
+            return Constant.STATUS_ERR + e.getMessage();
+        } catch (PoseImpossibleException e) {
+            return Constant.STATUS_ERR + " La colonne est pleine";
+        }
+        return Constant.STATUS_EMPTY;
     }
 
     private String createGame(Player player1, Player player2) {
-
         Game game = new Puissance4();
         if (player1.setInGame(game) && player2.setInGame(game)) {
 
@@ -162,8 +132,6 @@ public class Server {
             sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.CREATE_GAME);
             sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.GAME_STATUS);
         }
-
-
         return Constant.STATUS_EMPTY;
     }
 
@@ -184,39 +152,29 @@ public class Server {
     }
 
     public String declineRequest(Player player) {
-        playersLock.readLock().lock();
-        try {
-            String targetName = player.getRequest();
-            player.clearRequest();
+        String targetName = player.getRequest();
+        player.clearRequest();
 
-            if (targetName == null) {
-                return Constant.STATUS_ERR + " Aucune demande de jeu en attente";
-            }
-
-            Player target = this.playersList.get(targetName);
-            if (target == null || !target.isAvailable()) {
-                return Constant.STATUS_ERR + " La demande de jeu n'est plus valide";
-            }
-
-            target.getClientHandler().sendMessage("Demande de jeu refusée par " + player.getName());
-
-            return Constant.STATUS_OK;
-        } finally {
-            playersLock.readLock().unlock();
+        if (targetName == null) {
+            return Constant.STATUS_ERR + " Aucune demande de jeu en attente";
         }
+
+        Player target = this.playersList.get(targetName);
+        if (target == null || !target.isAvailable()) {
+            return Constant.STATUS_ERR + " La demande de jeu n'est plus valide";
+        }
+
+        target.getClientHandler().sendMessage("Demande de jeu refusée par " + player.getName());
+
+        return Constant.STATUS_OK;
     }
 
     public String getPlayerList() {
-        playersLock.readLock().lock();
-        try {
-            StringBuilder response = new StringBuilder(Constant.STATUS_OK + " Liste des joueurs : ");
-            for (String name : this.playersList.keySet()) {
-                response.append(name).append(" ");
-            }
-            return response.toString();
-        } finally {
-            playersLock.readLock().unlock();
+        StringBuilder response = new StringBuilder(Constant.STATUS_OK + " Liste des joueurs : ");
+        for (String name : this.playersList.keySet()) {
+            response.append(name).append(" ");
         }
+        return response.toString();
     }
 
     public static void main(String[] args) {
