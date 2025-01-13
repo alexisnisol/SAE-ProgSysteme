@@ -24,7 +24,7 @@ public class Player {
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public static boolean isValidPlayerName(String playerName) {
@@ -63,6 +63,6 @@ public class Player {
 
     @Override
     public String toString() {
-        return name;
+        return this.name;
     }
 }
