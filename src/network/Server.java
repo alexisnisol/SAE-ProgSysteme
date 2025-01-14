@@ -4,6 +4,7 @@ import model.Game;
 import model.Puissance4;
 import model.exception.PoseImpossibleException;
 import network.protocols.client.ClientProtocolRegistry;
+import network.protocols.server.ServerProtocolRegistry;
 import network.utils.Constant;
 
 import java.io.IOException;
@@ -11,8 +12,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import bdd.Requete;
 
@@ -217,6 +216,13 @@ public class Server {
         }
         return response.toString();
     }
+
+    public String getHelp() {
+        StringBuilder response = new StringBuilder(Constant.STATUS_OK + " Liste des commandes : ");
+        ServerProtocolRegistry.getAllCommands().forEach(name -> response.append(name).append(" - "));
+        return response.toString();
+    }
+
 
     public static void main(String[] args) {
         new Server();

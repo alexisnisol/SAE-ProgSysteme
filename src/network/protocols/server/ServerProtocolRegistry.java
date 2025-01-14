@@ -6,6 +6,7 @@ import network.utils.Constant;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class ServerProtocolRegistry {
 
@@ -33,6 +34,7 @@ public class ServerProtocolRegistry {
         ServerProtocolRegistry.commandsList.put(TypeProtocol.ACCEPT, (args, player, clientHandler) -> clientHandler.getServer().acceptRequest(player));
         ServerProtocolRegistry.commandsList.put(TypeProtocol.DECLINE, (args, player, clientHandler) -> clientHandler.getServer().declineRequest(player));
         ServerProtocolRegistry.commandsList.put(TypeProtocol.PLAYERLIST, (args, player, clientHandler) -> clientHandler.getServer().getPlayerList());
+        ServerProtocolRegistry.commandsList.put(TypeProtocol.HELP, (args, player, clientHandler) -> clientHandler.getServer().getHelp());
         ServerProtocolRegistry.commandsList.put(TypeProtocol.PLAY, (args, player, clientHandler) -> clientHandler.getServer().play(player, args[0]));
         ServerProtocolRegistry.commandsList.put(TypeProtocol.INFO, (args, player, clientHandler) -> clientHandler.getServer().infoPlayer(player, args[0]));
     }
@@ -50,6 +52,10 @@ public class ServerProtocolRegistry {
 
     private static boolean playerIsAuthenticated(Player player) {
         return player != null;
+    }
+
+    public static Set<TypeProtocol> getAllCommands() {
+        return commandsList.keySet();
     }
 
     public enum TypeProtocol {
