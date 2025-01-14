@@ -14,12 +14,20 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import bdd.Requete;
+
 public class Server {
 
     private final ConcurrentMap<String, Player> playersList = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Game> gamesList = new ConcurrentHashMap<>();
+    private Requete requete;
 
     public Server() {
+        try {
+            this.requete = new Requete();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         try {
             ServerSocket serverSocket = new ServerSocket(Constant.PORT);
 
@@ -36,6 +44,9 @@ public class Server {
     public String connect(Player player) {
         if (this.playersList.containsKey(player.getName())) {
             return Constant.STATUS_ERR + " Le nom est déjà utilisé";
+        }
+        if (!this.requete.playerExists(player.getName())) {
+            this.requete.addPlayer(player.getName());
         }
         this.playersList.put(player.getName(), player);
         System.out.println("Client " + player.getName() + " connecté : " + this.playersList);
@@ -107,8 +118,19 @@ public class Server {
 
             if (status == Puissance4.Status.GAGNE) {
                 sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.END_GAMES_VICTORY);
+                String joueurGagnant = game.getPlayer(game.getJoueurActuel()).getName();
+                System.out.println("Le joueur " + joueurGagnant + " a gagné la partie");
+                System.out.println(game.getPlayers());
+                String joueurPerdant = null;
+                for (Player currentPlayer : game.getPlayers()) {
+                    if (game.getPlayer(game.getJoueurActuel()) != currentPlayer) {
+                        joueurPerdant = currentPlayer.getName();
+                    }
+                }
+                this.requete.insertPartie(joueurGagnant, joueurPerdant, joueurGagnant);
             } else if (status == Puissance4.Status.NULL) {
                 sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.END_GAMES_DRAW);
+                this.requete.insertPartie(game.getPlayers().get(0).getName(), game.getPlayers().get(1).getName(), null);
             }
 
         } catch (NumberFormatException e) {

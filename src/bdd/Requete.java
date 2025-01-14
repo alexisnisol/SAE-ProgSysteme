@@ -32,4 +32,84 @@ public class Requete {
             return null;
         }
     }
+
+    public boolean playerExists(String name) {
+        try {
+            PreparedStatement ps = this.connexionBD.prepareStatement("SELECT * FROM JOUEURS WHERE nom = ?");
+            ps.setString(1, name);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+            return false;
+        }
+    }
+
+    public void addPlayer(String name) {
+        try {
+            PreparedStatement ps = this.connexionBD.prepareStatement("INSERT INTO JOUEURS (nom) VALUES (?)");
+            ps.setString(1, name);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+        }
+    }
+
+    public void insertPartie(String joueur1, String joueur2, String joueurGagnant) {
+        try {
+            PreparedStatement ps = this.connexionBD.prepareStatement("INSERT INTO PARTIES (nomJoueur1, nomJoueur2, nomGagnant) VALUES (?, ?, ?)");
+            ps.setString(1, joueur1);
+            ps.setString(2, joueur2);
+            ps.setString(3, joueurGagnant);
+            ps.executeUpdate();
+            if (joueurGagnant == null) {
+                this.addNul(joueur1);
+                this.addNul(joueur2);
+            } else if (joueurGagnant.equals(joueur1)) {
+                this.addVictoire(joueur1);
+                this.addDefaite(joueur2);
+            } else {
+                this.addVictoire(joueur2);
+                this.addDefaite(joueur1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+        }
+    }
+
+    public void addVictoire(String name) {
+        try {
+            PreparedStatement ps = this.connexionBD.prepareStatement("UPDATE JOUEURS SET nbVictoires = nbVictoires + 1, nbParties = nbParties + 1 WHERE nom = ?");
+            ps.setString(1, name);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+        }
+    }
+
+    public void addDefaite(String name) {
+        try {
+            PreparedStatement ps = this.connexionBD.prepareStatement("UPDATE JOUEURS SET nbDefaites = nbDefaites + 1, nbParties = nbParties + 1 WHERE nom = ?");
+            ps.setString(1, name);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+        }
+    }
+
+    public void addNul(String name) {
+        try {
+            PreparedStatement ps = this.connexionBD.prepareStatement("UPDATE JOUEURS SET nbNuls = nbNuls + 1, nbParties = nbParties + 1 WHERE nom = ?");
+            ps.setString(1, name);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+        }
+    }
 }
