@@ -85,6 +85,25 @@ public class Server {
         return Constant.STATUS_OK;
     }
 
+    public String infoPlayer(Player source, String target) {
+        if (!source.isAvailable()) {
+            return Constant.STATUS_ERR + " Vous ne pouvez pas demander des informations sur un joueur";
+        }
+
+        return this.requete.getInfoPlayer(target);
+        // System.out.println(player);
+        // return player.getName();
+        // String targetName = player.getRequest();
+        // return targetName;
+        // player.clearRequest();
+
+        // if (targetName == null) {
+        //     return Constant.STATUS_ERR + " Aucun joueur sélectionné";
+        // }
+
+        // return this.requete.getInfoPlayer(targetName);
+    }
+
     public String acceptRequest(Player player) {
         String targetName = player.getRequest();
         player.clearRequest();

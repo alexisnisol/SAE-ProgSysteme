@@ -112,4 +112,23 @@ public class Requete {
             System.out.println(e);
         }
     }
+
+    public String getInfoPlayer(String name) {
+        try {
+            PreparedStatement ps = this.connexionBD.prepareStatement("SELECT * FROM JOUEURS WHERE nom = ?");
+            ps.setString(1, name);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return "Nom: " + rs.getString("nom") + " - " +
+                        "Nombre de parties: " + rs.getInt("nbParties") + "(" +
+                        rs.getInt("nbVictoires") + "V/" +
+                        rs.getInt("nbDefaites") + "D/" +
+                        rs.getInt("nbNuls") + "N)";
+            } else {
+                return "Le joueur " + name + " n'existe pas";
+            }
+        } catch (Exception e) {
+            return "Erreur lors de la récupération des informations du joueur " + name;
+        }
+    }
 }
