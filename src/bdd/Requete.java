@@ -80,7 +80,7 @@ public class Requete {
         }
     }
 
-    public void addVictoire(String name) {
+    private void addVictoire(String name) {
         try {
             PreparedStatement ps = this.connexionBD.prepareStatement("UPDATE JOUEURS SET nbVictoires = nbVictoires + 1, nbParties = nbParties + 1 WHERE nom = ?");
             ps.setString(1, name);
@@ -91,7 +91,7 @@ public class Requete {
         }
     }
 
-    public void addDefaite(String name) {
+    private void addDefaite(String name) {
         try {
             PreparedStatement ps = this.connexionBD.prepareStatement("UPDATE JOUEURS SET nbDefaites = nbDefaites + 1, nbParties = nbParties + 1 WHERE nom = ?");
             ps.setString(1, name);
@@ -102,7 +102,7 @@ public class Requete {
         }
     }
 
-    public void addNul(String name) {
+    private void addNul(String name) {
         try {
             PreparedStatement ps = this.connexionBD.prepareStatement("UPDATE JOUEURS SET nbNuls = nbNuls + 1, nbParties = nbParties + 1 WHERE nom = ?");
             ps.setString(1, name);

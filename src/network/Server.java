@@ -15,6 +15,11 @@ import java.util.concurrent.ConcurrentMap;
 
 import bdd.Requete;
 
+/**
+ * Class Server
+ * Gère les connexions des clients et les parties en cours.
+ * Créer un thread ClientHandler pour chaque client connecté.
+ */
 public class Server {
 
     private final ConcurrentMap<String, Player> playersList = new ConcurrentHashMap<>();
@@ -40,6 +45,11 @@ public class Server {
         }
     }
 
+    /**
+     * Connecte un joueur au serveur
+     * @param player Joueur à connecter
+     * @return Statut de la connexion (OK ou ERR)
+     */
     public String connect(Player player) {
         if (this.playersList.containsKey(player.getName())) {
             return Constant.STATUS_ERR + " Le nom est déjà utilisé";
@@ -52,16 +62,32 @@ public class Server {
         return Constant.STATUS_OK;
     }
 
-    public Player getPlayer(String name) {
-        return this.playersList.get(name);
-    }
-
+    /**
+     * Déconnecte un joueur du serveur
+     * @param player Joueur à déconnecter
+     * @return Statut de la déconnexion (OK)
+     */
     public String disconnect(Player player) {
         this.playersList.remove(player.getName());
         System.out.println("Client " + player.getName() + " déconnecté : " + this.playersList);
         return Constant.STATUS_OK;
     }
 
+    /**
+     * Récupère un joueur connecté par son nom
+     * @param name Nom du joueur
+     * @return Joueur connecté
+     */
+    public Player getPlayer(String name) {
+        return this.playersList.get(name);
+    }
+
+    /**
+     * Envoie une demande de jeu à un joueur
+     * @param source Joueur demandant la partie
+     * @param target Nom du joueur cible
+     * @return Statut de la demande (OK ou ERR)
+     */
     public String playRequest(Player source, String target) {
         if (!source.isAvailable()) {
             return Constant.STATUS_ERR + " Vous ne pouvez faire une demande de jeu";
@@ -84,6 +110,35 @@ public class Server {
         return Constant.STATUS_OK;
     }
 
+    /**
+     * Accepte une demande de jeu
+     * @param player Joueur acceptant la demande
+     * @return Statut de l'acceptation (OK ou ERR)
+     */
+    public String acceptRequest(Player player) {
+        String targetName = player.getRequest();
+        player.clearRequest();
+
+        if (targetName == null) {
+            return Constant.STATUS_ERR + " Aucune demande de jeu en attente";
+        }
+
+        Player target = this.playersList.get(targetName);
+        if (target == null || !target.isAvailable()) {
+            return Constant.STATUS_ERR + " La demande de jeu n'est plus valide";
+        }
+
+        target.getClientHandler().sendMessage("Demande de jeu acceptée par " + player.getName());
+
+        return createGame(player, target);
+    }
+
+    /**
+     * Récupère les informations d'un joueur
+     * @param source Joueur demandant les informations
+     * @param target Nom du joueur cible
+     * @return Informations du joueur
+     */
     public String infoPlayer(Player source, String target) {
         if (!source.isAvailable()) {
             return Constant.STATUS_ERR + " Vous ne pouvez pas demander des informations sur un joueur";
@@ -103,24 +158,13 @@ public class Server {
         // return this.requete.getInfoPlayer(targetName);
     }
 
-    public String acceptRequest(Player player) {
-        String targetName = player.getRequest();
-        player.clearRequest();
-
-        if (targetName == null) {
-            return Constant.STATUS_ERR + " Aucune demande de jeu en attente";
-        }
-
-        Player target = this.playersList.get(targetName);
-        if (target == null || !target.isAvailable()) {
-            return Constant.STATUS_ERR + " La demande de jeu n'est plus valide";
-        }
-
-        target.getClientHandler().sendMessage("Demande de jeu acceptée par " + player.getName());
-
-        return createGame(player, target);
-    }
-
+    /**
+     * Joue dans une partie en cours.
+     * Envoie une
+     * @param player Joueur jouant le coup
+     * @param column Colonne où jouer le coup
+     * @return Statut du coup (EMPTY ou ERR)
+     */
     public String play(Player player, String column) {
         Game game = this.gamesList.get(player.getIdGame());
         if (game == null) {
@@ -175,15 +219,24 @@ public class Server {
         return Constant.STATUS_EMPTY;
     }
 
+    /**
+     * Envoie le statut de la partie à tous les joueurs de la partie.
+     * Le statut est envoyé en fonction du type de protocole à envoyer.
+     * Si le type de protocole est END_GAMES_VICTORY, envoie un message de victoire au joueur actuel et un message de défaite aux autres joueurs.
+     * Sinon, envoie le statut de la partie à tous les joueurs.
+     * @param game Partie en cours
+     * @param typeProtocol Type de protocole à envoyer
+     * @param args Arguments à envoyer
+     */
     private void sendGameStatus(Game game, ClientProtocolRegistry.TypeProtocol typeProtocol, String... args) {
-        if(typeProtocol == ClientProtocolRegistry.TypeProtocol.END_GAMES_VICTORY) {
-        for (Player player : game.getPlayers()) {
-            if (game.getPlayer(game.getJoueurActuel()) == player) {
-                player.getClientHandler().send(ClientProtocolRegistry.TypeProtocol.END_GAMES_VICTORY, args);
-            } else {
-                player.getClientHandler().send(ClientProtocolRegistry.TypeProtocol.END_GAMES_LOOSE, args);
+        if (typeProtocol == ClientProtocolRegistry.TypeProtocol.END_GAMES_VICTORY) {
+            for (Player player : game.getPlayers()) {
+                if (game.getPlayer(game.getJoueurActuel()) == player) {
+                    player.getClientHandler().send(ClientProtocolRegistry.TypeProtocol.END_GAMES_VICTORY, args);
+                } else {
+                    player.getClientHandler().send(ClientProtocolRegistry.TypeProtocol.END_GAMES_LOOSE, args);
+                }
             }
-        }
         } else {
             for (Player player : game.getPlayers()) {
                 player.getClientHandler().send(typeProtocol, args);
