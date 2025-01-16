@@ -90,17 +90,14 @@ public class Server {
         }
 
         return this.requete.getInfoPlayer(target);
-        // System.out.println(player);
-        // return player.getName();
-        // String targetName = player.getRequest();
-        // return targetName;
-        // player.clearRequest();
+    }
 
-        // if (targetName == null) {
-        //     return Constant.STATUS_ERR + " Aucun joueur sélectionné";
-        // }
+    public String historyPlayer(Player source, String target) {
+        if (!source.isAvailable()) {
+            return Constant.STATUS_ERR + " Vous ne pouvez pas demander l'historique d'un joueur";
+        }
 
-        // return this.requete.getInfoPlayer(targetName);
+        return this.requete.getHistoriquePlayer(target);
     }
 
     public String acceptRequest(Player player) {
