@@ -67,7 +67,7 @@ public class ServerProtocolRegistry {
         ACCEPT,
         DECLINE,
         PLAYERLIST,
-        HELP,
+        HELP(false),
         PLAY,
         INFO,
         HISTORY,
