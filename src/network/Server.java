@@ -261,8 +261,10 @@ public class Server {
 
     public String getPlayerList() {
         StringBuilder response = new StringBuilder(Constant.STATUS_OK + " Liste des joueurs : ");
-        for (String name : this.playersList.keySet()) {
-            response.append(name).append(" ");
+        for (Player player : this.playersList.values()) {
+            if (player.isAvailable()) {
+                response.append(player.getName()).append(" ");
+            }
         }
         return response.toString();
     }
