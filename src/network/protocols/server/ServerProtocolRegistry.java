@@ -6,6 +6,7 @@ import network.utils.Constant;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Classe responsable de l'enregistrement et de l'exécution des protocoles serveur.
@@ -75,6 +76,10 @@ public class ServerProtocolRegistry {
         return player != null;
     }
 
+    public static Set<TypeProtocol> getAllCommands() {
+        return commandsList.keySet();
+    }
+
     /**
      * Enumération des types de protocoles disponibles.
      * Chaque type peut nécessiter une authentification ou non.
@@ -87,7 +92,10 @@ public class ServerProtocolRegistry {
         ACCEPT,
         DECLINE,
         PLAYERLIST,
+        HELP,
         PLAY,
+        INFO,
+        HISTORY,
         DEFAULT;
 
         /** Indique si le protocole nécessite une authentification. */

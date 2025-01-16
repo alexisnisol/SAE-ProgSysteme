@@ -4,6 +4,7 @@ import model.Game;
 import model.Puissance4;
 import model.exception.PoseImpossibleException;
 import network.protocols.client.ClientProtocolRegistry;
+import network.protocols.server.ServerProtocolRegistry;
 import network.utils.Constant;
 
 import java.io.IOException;
@@ -11,6 +12,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Classe représentant le serveur du système de jeu.
@@ -23,12 +26,18 @@ public class Server {
 
     /** Liste des parties en cours, identifiées par leur ID. */
     private final ConcurrentMap<String, Game> gamesList = new ConcurrentHashMap<>();
+    private Requete requete;
 
     /**
      * Constructeur de la classe Server.
      * Initialise le serveur, attend les connexions des clients et crée un thread pour chaque connexion.
      */
     public Server() {
+        try {
+            this.requete = new Requete();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         try {
             ServerSocket serverSocket = new ServerSocket(Constant.PORT);
 
@@ -51,6 +60,9 @@ public class Server {
     public String connect(Player player) {
         if (this.playersList.containsKey(player.getName())) {
             return Constant.STATUS_ERR + " Le nom est déjà utilisé";
+        }
+        if (!this.requete.playerExists(player.getName())) {
+            this.requete.addPlayer(player.getName());
         }
         this.playersList.put(player.getName(), player);
         System.out.println("Client " + player.getName() + " connecté : " + this.playersList);
@@ -133,12 +145,74 @@ public class Server {
     }
 
     /**
-     * Lance une partie entre deux joueurs.
-     *
-     * @param player1 le premier joueur.
-     * @param player2 le deuxième joueur.
-     * @return une chaîne vide indiquant le succès de l'opération.
+     * Récupère les informations d'un joueur
+     * @param source Joueur demandant les informations
+     * @param target Nom du joueur cible
+     * @return Informations du joueur
      */
+    public String infoPlayer(Player source, String target) {
+        if (!source.isAvailable()) {
+            return Constant.STATUS_ERR + " Vous ne pouvez pas demander des informations sur un joueur";
+        }
+
+        return this.requete.getInfoPlayer(target);
+    }
+
+    public String historyPlayer(Player source, String target) {
+        if (!source.isAvailable()) {
+            return Constant.STATUS_ERR + " Vous ne pouvez pas demander l'historique d'un joueur";
+        }
+
+        return this.requete.getHistoriquePlayer(target);
+    }
+
+    /**
+     * Joue dans une partie en cours.
+     * Envoie une
+     * @param player Joueur jouant le coup
+     * @param column Colonne où jouer le coup
+     * @return Statut du coup (EMPTY ou ERR)
+     */
+    public String play(Player player, String column) {
+        Game game = this.gamesList.get(player.getIdGame());
+        if (game == null) {
+            return Constant.STATUS_ERR + " Vous n'êtes pas dans une partie";
+        }
+        try {
+            if(game.getPlayer(game.getJoueurActuel()) != player) {
+                return Constant.STATUS_ERR + " Ce n'est pas votre tour";
+            }
+
+            Puissance4.Status status = game.poserPions(Integer.parseInt(column));
+            sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.PLAY, column);
+
+            if (status == Puissance4.Status.GAGNE) {
+                sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.END_GAMES_VICTORY);
+                String joueurGagnant = game.getPlayer(game.getJoueurActuel()).getName();
+                System.out.println("Le joueur " + joueurGagnant + " a gagné la partie");
+                System.out.println(game.getPlayers());
+                String joueurPerdant = null;
+                for (Player currentPlayer : game.getPlayers()) {
+                    if (game.getPlayer(game.getJoueurActuel()) != currentPlayer) {
+                        joueurPerdant = currentPlayer.getName();
+                    }
+                }
+                this.requete.insertPartie(joueurGagnant, joueurPerdant, joueurGagnant);
+            } else if (status == Puissance4.Status.NULL) {
+                sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.END_GAMES_DRAW);
+                this.requete.insertPartie(game.getPlayers().get(0).getName(), game.getPlayers().get(1).getName(), null);
+            }
+
+        } catch (NumberFormatException e) {
+            return Constant.STATUS_ERR + " La colonne doit être un nombre";
+        } catch (IllegalArgumentException e) {
+            return Constant.STATUS_ERR + e.getMessage();
+        } catch (PoseImpossibleException e) {
+            return Constant.STATUS_ERR + " La colonne est pleine";
+        }
+        return Constant.STATUS_EMPTY;
+    }
+
     private String createGame(Player player1, Player player2) {
         Game game = new Puissance4();
         if (player1.setInGame(game) && player2.setInGame(game)) {
@@ -153,13 +227,6 @@ public class Server {
         return Constant.STATUS_EMPTY;
     }
 
-    /**
-     * Envoie une mise à jour du statut de la partie à tous les joueurs.
-     *
-     * @param game        la partie en cours.
-     * @param typeProtocol le type de mise à jour.
-     * @param args        arguments supplémentaires liés à la mise à jour.
-     */
     private void sendGameStatus(Game game, ClientProtocolRegistry.TypeProtocol typeProtocol, String... args) {
         if (typeProtocol == ClientProtocolRegistry.TypeProtocol.END_GAMES_VICTORY) {
             for (Player player : game.getPlayers()) {
@@ -212,6 +279,13 @@ public class Server {
         }
         return response.toString();
     }
+
+    public String getHelp() {
+        StringBuilder response = new StringBuilder(Constant.STATUS_OK + " Liste des commandes : ");
+        ServerProtocolRegistry.getAllCommands().forEach(name -> response.append(name).append(" - "));
+        return response.toString();
+    }
+
 
     /**
      * Point d'entrée principal du serveur.

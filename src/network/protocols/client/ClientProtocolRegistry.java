@@ -62,7 +62,7 @@ public class ClientProtocolRegistry {
 
         ClientProtocolRegistry.commandsList.put(ClientProtocolRegistry.TypeProtocol.CREATE_GAME, (args, client) -> {
             client.setGame(new Puissance4());
-            return "";
+            return Constant.STATUS_EMPTY;
         });
 
         ClientProtocolRegistry.commandsList.put(TypeProtocol.MSG, (args, client) -> {

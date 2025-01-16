@@ -326,7 +326,7 @@ public class Puissance4 extends Game {
                 if (this.plateau.get(j).size() > i){
                     str.append(this.plateau.get(j).get(i) == Pions.JOUEUR1 ? "0" : "1");
                 } else {
-                    str.append("x");
+                    str.append(".");
                 }
             }
         }
