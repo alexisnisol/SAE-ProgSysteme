@@ -168,8 +168,17 @@ public class Server {
             return Constant.STATUS_ERR + " Vous n'êtes pas dans une partie";
         }
         try {
+
+            if (column == null) {
+                return Constant.STATUS_ERR + " Veuillez entrer une colonne";
+            }
+            
             if(game.getPlayer(game.getJoueurActuel()) != player) {
                 return Constant.STATUS_ERR + " Ce n'est pas votre tour";
+            }
+
+            if (game.coupValide(Integer.parseInt(column)) == false) {
+                return Constant.STATUS_ERR + " La colonne n'est pas valide";
             }
 
             Puissance4.Status status = game.poserPions(Integer.parseInt(column));

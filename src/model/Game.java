@@ -37,4 +37,5 @@ public abstract class Game {
 
     public abstract Puissance4.Status poserPions(int indice) throws PoseImpossibleException;
 
+    public abstract boolean coupValide(int indice);
 }
