@@ -1,0 +1,40 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.example'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.mariadb.jdbc:mariadb-java-client:2.7.3'
+    implementation 'org.openjfx:javafx-controls:17.0.2'
+    implementation 'org.openjfx:javafx-fxml:17.0.2'
+    implementation 'org.openjfx:javafx-graphics:17.0.2'
+}
+
+
+// Tâche pour exécuter le Client
+task runClient(type: JavaExec) {
+    group = 'application'
+    description = "Lancer l'application Client"
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'com.network.Client'
+}
+
+// Tâche pour exécuter le Serveur
+task runServer(type: JavaExec) {
+    group = 'application'
+    description = "Lancer l'application Serveur"
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'com.network.Server'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
