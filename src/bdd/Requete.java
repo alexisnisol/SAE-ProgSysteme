@@ -131,4 +131,23 @@ public class Requete {
             return "Erreur lors de la récupération des informations du joueur " + name;
         }
     }
+
+    public String getHistoriquePlayer(String name) {
+        try {
+            PreparedStatement ps = this.connexionBD.prepareStatement("SELECT * FROM PARTIES WHERE nomJoueur1 = ? OR nomJoueur2 = ?");
+            ps.setString(1, name);
+            ps.setString(2, name);
+            ResultSet rs = ps.executeQuery();
+            String parties = "";
+            while (rs.next()) {
+                parties += rs.getString("nomJoueur1") + " VS " + rs.getString("nomJoueur2") + " - Gagnant: " + rs.getString("nomGagnant") + " | ";
+            }
+            if (parties.isEmpty()) {
+                return "Aucune partie pour le joueur " + name;
+            }
+            return parties;
+        } catch (Exception e) {
+            return "Erreur lors de la récupération des parties du joueur " + name;
+        }
+    }
 }
