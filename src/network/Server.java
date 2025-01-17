@@ -15,6 +15,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import bdd.Requete;
+
 /**
  * Classe représentant le serveur du système de jeu.
  * Gère les connexions des joueurs, les parties en cours, et les interactions entre les joueurs et le serveur.
