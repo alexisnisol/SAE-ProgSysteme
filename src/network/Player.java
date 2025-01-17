@@ -35,6 +35,11 @@ public class Player {
         return !this.inGame && this.pendingRequest == null;
     }
 
+    public void setAvailable(boolean available) {
+    this.inGame = !available;  
+}
+
+
     public void setRequest(Player playerSource) {
         this.pendingRequest = playerSource.getName();
     }

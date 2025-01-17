@@ -192,19 +192,14 @@ public class Server {
             if (status == Puissance4.Status.GAGNE) {
                 sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.END_GAMES_VICTORY);
                 String joueurGagnant = game.getPlayer(game.getJoueurActuel()).getName();
-                System.out.println("Le joueur " + joueurGagnant + " a gagné la partie");
-                System.out.println(game.getPlayers());
-                String joueurPerdant = null;
-                for (Player currentPlayer : game.getPlayers()) {
-                    if (game.getPlayer(game.getJoueurActuel()) != currentPlayer) {
-                        joueurPerdant = currentPlayer.getName();
-                    }
-                }
-                this.requete.insertPartie(joueurGagnant, joueurPerdant, joueurGagnant);
+                System.out.println("Le joueur " + joueurGagnant + " a gagné la partie.");
+                returnToLobby(game);
             } else if (status == Puissance4.Status.NULL) {
                 sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.END_GAMES_DRAW);
-                this.requete.insertPartie(game.getPlayers().get(0).getName(), game.getPlayers().get(1).getName(), null);
+                System.out.println("Match nul. Tous les joueurs retournent au lobby.");
+                returnToLobby(game);
             }
+
 
         } catch (NumberFormatException e) {
             return Constant.STATUS_ERR + " La colonne doit être un nombre";
@@ -283,6 +278,20 @@ public class Server {
         }
         return response.toString();
     }
+
+    public void returnToLobby(Game game) {
+        for (Player player : game.getPlayers()) {
+            player.setInGame(null);
+            player.setAvailable(true);
+            this.playersList.put(player.getName(), player);
+
+            player.getClientHandler().sendMessage("Vous êtes retourné au lobby.");
+        }
+
+        this.gamesList.remove(game.getId());
+    }
+
+
 
     public String getHelp() {
         StringBuilder response = new StringBuilder(Constant.STATUS_OK + " Liste des commandes : ");
