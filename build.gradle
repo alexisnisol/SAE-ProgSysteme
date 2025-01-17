@@ -23,7 +23,7 @@ task runClient(type: JavaExec) {
     group = 'application'
     description = "Lancer l'application Client"
     classpath = sourceSets.main.runtimeClasspath
-    main = 'com.network.Client'
+    main = 'com.views.AppliClient'
 }
 
 // Tâche pour exécuter le Serveur
