@@ -68,10 +68,15 @@ public class Server {
      * @return Statut de la déconnexion (OK)
      */
     public String disconnect(Player player) {
-        this.playersList.remove(player.getName());
-        System.out.println("Client " + player.getName() + " déconnecté : " + this.playersList);
+        if (player != null && this.playersList.containsKey(player.getName())) {
+            this.playersList.remove(player.getName());
+            System.out.println("Client " + player.getName() + " déconnecté.");
+        } else {
+            System.out.println("Déconnexion d'un joueur non enregistré.");
+        }
         return Constant.STATUS_OK;
     }
+
 
     /**
      * Récupère un joueur connecté par son nom
@@ -219,6 +224,7 @@ public class Server {
 
             System.out.println("Nouvelle partie créée : " + game.getId() + " entre " + player1.getName() + " et " + player2.getName());
             game.start();
+            player1.getClientHandler().sendMessage("C'est à votre tour !");
             sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.CREATE_GAME);
             sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.GAME_STATUS);
         }
