@@ -71,9 +71,26 @@ public class Server {
         if (player != null && this.playersList.containsKey(player.getName())) {
             this.playersList.remove(player.getName());
             System.out.println("Client " + player.getName() + " déconnecté.");
+            player.setAvailable(true);
+            Game game = this.gamesList.get(player.getIdGame());
+        if (game != null) {
+            Player otherPlayer = null;
+            for (Player p : game.getPlayers()) {
+                if (!p.equals(player)) {
+                    otherPlayer = p;
+                    break;
+                }
+            }
+
+            if (otherPlayer != null) {
+                otherPlayer.getClientHandler().sendMessage("Votre adversaire s'est déconnecté. Vous avez gagné par forfait !");
+                System.out.println("Message envoyé à " + otherPlayer.getName());
+            }}
         } else {
             System.out.println("Déconnexion d'un joueur non enregistré.");
         }
+        returnToLobby(this.gamesList.get(player.getIdGame()));
+
         return Constant.STATUS_OK;
     }
 
@@ -280,17 +297,21 @@ public class Server {
     }
 
     public void returnToLobby(Game game) {
+        try{
+
         for (Player player : game.getPlayers()) {
-            player.setInGame(null);
-            player.setAvailable(true);
-            this.playersList.put(player.getName(), player);
+            if(!player.isAvailable()){ 
+                player.setAvailable(true);
+                this.playersList.put(player.getName(), player);
 
-            player.getClientHandler().sendMessage("Vous êtes retourné au lobby.");
-        }
-
+                player.getClientHandler().sendMessage("Vous êtes retourné au lobby.");
+        }}
         this.gamesList.remove(game.getId());
+     }
+        catch (NullPointerException e) {
+            System.out.println("Plus aucun joueur connecté.");
     }
-
+    }
 
 
     public String getHelp() {
