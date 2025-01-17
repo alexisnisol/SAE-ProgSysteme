@@ -16,6 +16,8 @@ Afin d'avoir un deuxième joueur, lancez un autre client sur un autre terminal a
 
 ### Communication client/serveur
 
+Vous pouvez à tout moment utiliser la commande `HELP` pour connaître la liste des commandes possibles que vous pourrez utiliser durant votre session de jeu.
+
 Afin de se connecter au serveur, le client doit envoyer un message de type `CONNECT <Pseudo>` au serveur. Le serveur répondra par le message de type `OK`. Si le pseudo est déjà utilisé, le serveur répondra par un message de type `ERR <Message d'erreur>`. 
 
 Pour visualiser les joueurs connectés, le client doit envoyer un message de type `PLAYERLIST` au serveur. Le serveur répondra par un message de type `OK Liste des joueurs : <nomsDesJoueursConnectés>`. 
