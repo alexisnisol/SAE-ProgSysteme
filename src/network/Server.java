@@ -12,20 +12,28 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import bdd.Requete;
 
 /**
- * Class Server
- * Gère les connexions des clients et les parties en cours.
- * Créer un thread ClientHandler pour chaque client connecté.
+ * Classe représentant le serveur du système de jeu.
+ * Gère les connexions des joueurs, les parties en cours, et les interactions entre les joueurs et le serveur.
  */
 public class Server {
 
+    /** Liste des joueurs connectés, identifiés par leur nom. */
     private final ConcurrentMap<String, Player> playersList = new ConcurrentHashMap<>();
+
+    /** Liste des parties en cours, identifiées par leur ID. */
     private final ConcurrentMap<String, Game> gamesList = new ConcurrentHashMap<>();
     private Requete requete;
 
+    /**
+     * Constructeur de la classe Server.
+     * Initialise le serveur, attend les connexions des clients et crée un thread pour chaque connexion.
+     */
     public Server() {
         try {
             this.requete = new Requete();
@@ -40,15 +48,16 @@ public class Server {
                 Thread thread = new Thread(new ClientHandler(clientSocket, this));
                 thread.start();
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     /**
-     * Connecte un joueur au serveur
-     * @param player Joueur à connecter
-     * @return Statut de la connexion (OK ou ERR)
+     * Connecte un joueur au serveur.
+     *
+     * @param player le joueur à connecter.
+     * @return le statut de la connexion : "OK" si réussi, "ERR" si le nom est déjà utilisé.
      */
     public String connect(Player player) {
         if (this.playersList.containsKey(player.getName())) {
@@ -63,9 +72,20 @@ public class Server {
     }
 
     /**
-     * Déconnecte un joueur du serveur
-     * @param player Joueur à déconnecter
-     * @return Statut de la déconnexion (OK)
+     * Récupère un joueur connecté par son nom.
+     *
+     * @param name le nom du joueur.
+     * @return l'objet Player correspondant, ou null si le joueur n'est pas connecté.
+     */
+    public Player getPlayer(String name) {
+        return this.playersList.get(name);
+    }
+
+    /**
+     * Déconnecte un joueur du serveur.
+     *
+     * @param player le joueur à déconnecter.
+     * @return le statut de la déconnexion : "OK".
      */
     public String disconnect(Player player) {
         if (player != null && this.playersList.containsKey(player.getName())) {
@@ -96,19 +116,11 @@ public class Server {
 
 
     /**
-     * Récupère un joueur connecté par son nom
-     * @param name Nom du joueur
-     * @return Joueur connecté
-     */
-    public Player getPlayer(String name) {
-        return this.playersList.get(name);
-    }
-
-    /**
-     * Envoie une demande de jeu à un joueur
-     * @param source Joueur demandant la partie
-     * @param target Nom du joueur cible
-     * @return Statut de la demande (OK ou ERR)
+     * Envoie une demande de jeu à un autre joueur.
+     *
+     * @param source le joueur à l'origine de la demande.
+     * @param target le nom du joueur cible.
+     * @return le statut de la demande : "OK" si réussie, "ERR" sinon.
      */
     public String playRequest(Player source, String target) {
         if (!source.isAvailable()) {
@@ -122,7 +134,7 @@ public class Server {
         if (targetPlayer.equals(source)) {
             return Constant.STATUS_ERR + " Vous ne pouvez pas vous rejoindre vous-même";
         }
-        if(!targetPlayer.isAvailable()) {
+        if (!targetPlayer.isAvailable()) {
             return Constant.STATUS_ERR + " Le joueur " + target + " n'est pas disponible";
         }
 
@@ -133,9 +145,10 @@ public class Server {
     }
 
     /**
-     * Accepte une demande de jeu
-     * @param player Joueur acceptant la demande
-     * @return Statut de l'acceptation (OK ou ERR)
+     * Accepte une demande de jeu et crée une nouvelle partie.
+     *
+     * @param player le joueur acceptant la demande.
+     * @return le statut de l'opération : "OK" si réussie, "ERR" sinon.
      */
     public String acceptRequest(Player player) {
         String targetName = player.getRequest();
@@ -243,15 +256,6 @@ public class Server {
         return Constant.STATUS_EMPTY;
     }
 
-    /**
-     * Envoie le statut de la partie à tous les joueurs de la partie.
-     * Le statut est envoyé en fonction du type de protocole à envoyer.
-     * Si le type de protocole est END_GAMES_VICTORY, envoie un message de victoire au joueur actuel et un message de défaite aux autres joueurs.
-     * Sinon, envoie le statut de la partie à tous les joueurs.
-     * @param game Partie en cours
-     * @param typeProtocol Type de protocole à envoyer
-     * @param args Arguments à envoyer
-     */
     private void sendGameStatus(Game game, ClientProtocolRegistry.TypeProtocol typeProtocol, String... args) {
         if (typeProtocol == ClientProtocolRegistry.TypeProtocol.END_GAMES_VICTORY) {
             for (Player player : game.getPlayers()) {
@@ -268,6 +272,12 @@ public class Server {
         }
     }
 
+    /**
+     * Refuse une demande de jeu.
+     *
+     * @param player le joueur refusant la demande.
+     * @return le statut de l'opération : "OK" si réussie, "ERR" sinon.
+     */
     public String declineRequest(Player player) {
         String targetName = player.getRequest();
         player.clearRequest();
@@ -286,6 +296,11 @@ public class Server {
         return Constant.STATUS_OK;
     }
 
+    /**
+     * Récupère la liste des joueurs connectés.
+     *
+     * @return une chaîne contenant les noms des joueurs connectés.
+     */
     public String getPlayerList() {
         StringBuilder response = new StringBuilder(Constant.STATUS_OK + " Liste des joueurs : ");
         for (Player player : this.playersList.values()) {
@@ -321,6 +336,12 @@ public class Server {
     }
 
 
+    /**
+     * Point d'entrée principal du serveur.
+     * Crée une nouvelle instance de Server.
+     *
+     * @param args arguments de ligne de commande (non utilisés).
+     */
     public static void main(String[] args) {
         new Server();
     }
