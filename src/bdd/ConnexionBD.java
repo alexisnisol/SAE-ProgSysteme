@@ -2,6 +2,7 @@ package bdd;
 
 import java.sql.*;
 import bdd.Requete;
+import network.utils.Constant;
 
 /**
  * ConnexionBD
@@ -26,7 +27,7 @@ public class ConnexionBD {
 			System.out.println("Connexion à la base de donnée");
 			this.mysql=null;
 			this.connecte=false;
-            this.mysql = DriverManager.getConnection("jdbc:mysql://servinfo-maria:3306/DBnagarajah", "nagarajah", "nagarajah");
+            this.mysql = DriverManager.getConnection("jdbc:mysql://"+ Constant.HOST + ":3306/" + Constant.DB_NAME, Constant.USER, Constant.PASSWORD);
             this.connecte=true;
 			System.out.println("Connexion reussi !");
 		}
