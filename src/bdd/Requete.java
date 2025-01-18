@@ -140,7 +140,7 @@ public class Requete {
             ResultSet rs = ps.executeQuery();
             String parties = "";
             while (rs.next()) {
-                parties += rs.getString("nomJoueur1") + " VS " + rs.getString("nomJoueur2") + " - Gagnant: " + rs.getString("nomGagnant") + " | ";
+                parties += rs.getString("nomJoueur1") + " VS " + rs.getString("nomJoueur2") + " - Gagnant: " + rs.getString("nomGagnant") + " Le " + rs.getString("datePartie") + " | ";
             }
             if (parties.isEmpty()) {
                 return "Aucune partie pour le joueur " + name;
