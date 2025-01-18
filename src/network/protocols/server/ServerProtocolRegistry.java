@@ -35,7 +35,13 @@ public class ServerProtocolRegistry {
 
         ServerProtocolRegistry.commandsList.put(TypeProtocol.QUIT, (args, player, clientHandler) -> clientHandler.getServer().disconnect(player));
 
-        ServerProtocolRegistry.commandsList.put(TypeProtocol.ASK, (args, player, clientHandler) -> clientHandler.getServer().playRequest(player, args[0]));
+        ServerProtocolRegistry.commandsList.put(TypeProtocol.ASK, (args, player, clientHandler) -> {
+            if (args.length < 1) {
+                return Constant.STATUS_ERR + " Veuillez fournir un nom de joueur";
+            }
+
+            return clientHandler.getServer().playRequest(player, args[0]);
+        });
         ServerProtocolRegistry.commandsList.put(TypeProtocol.ACCEPT, (args, player, clientHandler) -> clientHandler.getServer().acceptRequest(player));
         ServerProtocolRegistry.commandsList.put(TypeProtocol.DECLINE, (args, player, clientHandler) -> clientHandler.getServer().declineRequest(player));
         ServerProtocolRegistry.commandsList.put(TypeProtocol.PLAYERLIST, (args, player, clientHandler) -> clientHandler.getServer().getPlayerList());
@@ -46,8 +52,19 @@ public class ServerProtocolRegistry {
             }
             return clientHandler.getServer().play(player, args[0]);
         });
-        ServerProtocolRegistry.commandsList.put(TypeProtocol.INFO, (args, player, clientHandler) -> clientHandler.getServer().infoPlayer(player, args[0]));
-        ServerProtocolRegistry.commandsList.put(TypeProtocol.HISTORY, (args, player, clientHandler) -> clientHandler.getServer().historyPlayer(player, args[0]));
+        ServerProtocolRegistry.commandsList.put(TypeProtocol.INFO, (args, player, clientHandler) -> {
+            if (args.length < 1) {
+                return Constant.STATUS_ERR + " Veuillez fournir un nom de joueur";
+            }
+
+            return clientHandler.getServer().infoPlayer(player, args[0]);
+        });
+        ServerProtocolRegistry.commandsList.put(TypeProtocol.HISTORY, (args, player, clientHandler) -> {
+            if (args.length < 1) {
+                return Constant.STATUS_ERR + " Veuillez fournir un nom de joueur";
+            }
+            return clientHandler.getServer().historyPlayer(player, args[0]);
+        });
 
     }
 
