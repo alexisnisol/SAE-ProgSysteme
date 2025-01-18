@@ -80,11 +80,19 @@ public class Player {
         return !this.inGame && this.pendingRequest == null;
     }
 
+
+    public void setAvailable(boolean available) {
+    this.inGame = !available;  
+}
+
+
+
     /**
      * Définit une demande de jeu pour ce joueur.
      *
      * @param playerSource le joueur ayant envoyé la demande.
      */
+
     public void setRequest(Player playerSource) {
         this.pendingRequest = playerSource.getName();
     }

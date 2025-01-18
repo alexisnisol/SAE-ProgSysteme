@@ -56,13 +56,20 @@ public class ClientHandler implements Runnable {
                 // Envoi de la réponse au client
                 sendMessage(response);
             }
-        } catch (IOException e) {
-            // Gestion de la déconnexion du client
-            if (this.player != null) {
-                this.server.disconnect(this.player);
-            }
+        }  catch (IOException e) {
+             System.out.println("Déconnexion détectée pour le client : " + (this.player != null ? this.player.getName() : "Inconnu"));
+    } finally {
+        if (this.player != null) {
+            this.server.disconnect(this.player);
+        }
+        try {
+            this.socket.close();
+        } catch (IOException ex) {
+            System.out.println("Erreur lors de la fermeture du socket : " + ex.getMessage());
+
         }
     }
+}
 
     /**
      * Récupère le serveur associé à ce gestionnaire client.

@@ -88,10 +88,32 @@ public class Server {
      * @return le statut de la déconnexion : "OK".
      */
     public String disconnect(Player player) {
-        this.playersList.remove(player.getName());
-        System.out.println("Client " + player.getName() + " déconnecté : " + this.playersList);
+        if (player != null && this.playersList.containsKey(player.getName())) {
+            this.playersList.remove(player.getName());
+            System.out.println("Client " + player.getName() + " déconnecté.");
+            player.setAvailable(true);
+            Game game = this.gamesList.get(player.getIdGame());
+        if (game != null) {
+            Player otherPlayer = null;
+            for (Player p : game.getPlayers()) {
+                if (!p.equals(player)) {
+                    otherPlayer = p;
+                    break;
+                }
+            }
+
+            if (otherPlayer != null) {
+                otherPlayer.getClientHandler().sendMessage("Votre adversaire s'est déconnecté. Vous avez gagné par forfait !");
+                System.out.println("Message envoyé à " + otherPlayer.getName());
+            }}
+        } else {
+            System.out.println("Déconnexion d'un joueur non enregistré.");
+        }
+        returnToLobby(this.gamesList.get(player.getIdGame()));
+
         return Constant.STATUS_OK;
     }
+
 
     /**
      * Envoie une demande de jeu à un autre joueur.
@@ -181,8 +203,17 @@ public class Server {
             return Constant.STATUS_ERR + " Vous n'êtes pas dans une partie";
         }
         try {
+
+            if (column == null) {
+                return Constant.STATUS_ERR + " Veuillez entrer une colonne";
+            }
+            
             if(game.getPlayer(game.getJoueurActuel()) != player) {
                 return Constant.STATUS_ERR + " Ce n'est pas votre tour";
+            }
+
+            if (game.coupValide(Integer.parseInt(column)) == false) {
+                return Constant.STATUS_ERR + " La colonne n'est pas valide";
             }
 
             Puissance4.Status status = game.poserPions(Integer.parseInt(column));
@@ -191,19 +222,14 @@ public class Server {
             if (status == Puissance4.Status.GAGNE) {
                 sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.END_GAMES_VICTORY);
                 String joueurGagnant = game.getPlayer(game.getJoueurActuel()).getName();
-                System.out.println("Le joueur " + joueurGagnant + " a gagné la partie");
-                System.out.println(game.getPlayers());
-                String joueurPerdant = null;
-                for (Player currentPlayer : game.getPlayers()) {
-                    if (game.getPlayer(game.getJoueurActuel()) != currentPlayer) {
-                        joueurPerdant = currentPlayer.getName();
-                    }
-                }
-                this.requete.insertPartie(joueurGagnant, joueurPerdant, joueurGagnant);
+                System.out.println("Le joueur " + joueurGagnant + " a gagné la partie.");
+                returnToLobby(game);
             } else if (status == Puissance4.Status.NULL) {
                 sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.END_GAMES_DRAW);
-                this.requete.insertPartie(game.getPlayers().get(0).getName(), game.getPlayers().get(1).getName(), null);
+                System.out.println("Match nul. Tous les joueurs retournent au lobby.");
+                returnToLobby(game);
             }
+
 
         } catch (NumberFormatException e) {
             return Constant.STATUS_ERR + " La colonne doit être un nombre";
@@ -223,6 +249,7 @@ public class Server {
 
             System.out.println("Nouvelle partie créée : " + game.getId() + " entre " + player1.getName() + " et " + player2.getName());
             game.start();
+            player1.getClientHandler().sendMessage("C'est à votre tour !");
             sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.CREATE_GAME);
             sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.GAME_STATUS);
         }
@@ -276,11 +303,31 @@ public class Server {
      */
     public String getPlayerList() {
         StringBuilder response = new StringBuilder(Constant.STATUS_OK + " Liste des joueurs : ");
-        for (String name : this.playersList.keySet()) {
-            response.append(name).append(" ");
+        for (Player player : this.playersList.values()) {
+            if (player.isAvailable()) {
+                response.append(player.getName()).append(" ");
+            }
         }
         return response.toString();
     }
+
+    public void returnToLobby(Game game) {
+        try{
+
+        for (Player player : game.getPlayers()) {
+            if(!player.isAvailable()){ 
+                player.setAvailable(true);
+                this.playersList.put(player.getName(), player);
+
+                player.getClientHandler().sendMessage("Vous êtes retourné au lobby.");
+        }}
+        this.gamesList.remove(game.getId());
+     }
+        catch (NullPointerException e) {
+            System.out.println("Plus aucun joueur connecté.");
+    }
+    }
+
 
     public String getHelp() {
         StringBuilder response = new StringBuilder(Constant.STATUS_OK + " Liste des commandes : ");

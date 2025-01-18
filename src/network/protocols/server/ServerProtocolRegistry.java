@@ -32,18 +32,23 @@ public class ServerProtocolRegistry {
             return Constant.STATUS_ERR + " Le nom doit contenir entre 3 et 10 caractères alphanumériques";
         });
 
-        ServerProtocolRegistry.commandsList.put(TypeProtocol.QUIT, 
-            (args, player, clientHandler) -> clientHandler.getServer().disconnect(player));
-        ServerProtocolRegistry.commandsList.put(TypeProtocol.ASK, 
-            (args, player, clientHandler) -> clientHandler.getServer().playRequest(player, args[0]));
-        ServerProtocolRegistry.commandsList.put(TypeProtocol.ACCEPT, 
-            (args, player, clientHandler) -> clientHandler.getServer().acceptRequest(player));
-        ServerProtocolRegistry.commandsList.put(TypeProtocol.DECLINE, 
-            (args, player, clientHandler) -> clientHandler.getServer().declineRequest(player));
-        ServerProtocolRegistry.commandsList.put(TypeProtocol.PLAYERLIST, 
-            (args, player, clientHandler) -> clientHandler.getServer().getPlayerList());
-        ServerProtocolRegistry.commandsList.put(TypeProtocol.PLAY, 
-            (args, player, clientHandler) -> clientHandler.getServer().play(player, args[0]));
+
+        ServerProtocolRegistry.commandsList.put(TypeProtocol.QUIT, (args, player, clientHandler) -> clientHandler.getServer().disconnect(player));
+
+        ServerProtocolRegistry.commandsList.put(TypeProtocol.ASK, (args, player, clientHandler) -> clientHandler.getServer().playRequest(player, args[0]));
+        ServerProtocolRegistry.commandsList.put(TypeProtocol.ACCEPT, (args, player, clientHandler) -> clientHandler.getServer().acceptRequest(player));
+        ServerProtocolRegistry.commandsList.put(TypeProtocol.DECLINE, (args, player, clientHandler) -> clientHandler.getServer().declineRequest(player));
+        ServerProtocolRegistry.commandsList.put(TypeProtocol.PLAYERLIST, (args, player, clientHandler) -> clientHandler.getServer().getPlayerList());
+        ServerProtocolRegistry.commandsList.put(TypeProtocol.HELP, (args, player, clientHandler) -> clientHandler.getServer().getHelp());
+        ServerProtocolRegistry.commandsList.put(TypeProtocol.PLAY, (args, player, clientHandler) -> {
+            if (args.length < 1) {
+                return Constant.STATUS_ERR + " Veuillez fournir un numéro de colonne";
+            }
+            return clientHandler.getServer().play(player, args[0]);
+        });
+        ServerProtocolRegistry.commandsList.put(TypeProtocol.INFO, (args, player, clientHandler) -> clientHandler.getServer().infoPlayer(player, args[0]));
+        ServerProtocolRegistry.commandsList.put(TypeProtocol.HISTORY, (args, player, clientHandler) -> clientHandler.getServer().historyPlayer(player, args[0]));
+
     }
 
     /**

@@ -30,6 +30,10 @@ public class Puissance4 extends Game {
         this.initPlateau();
     }
 
+    public boolean coupValide(int indice){
+        return indice >= 0 && indice < this.largeur && !this.isFull(indice);
+    }
+
     public enum Status{
         CONTINUER,
         GAGNE,

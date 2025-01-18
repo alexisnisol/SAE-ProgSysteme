@@ -90,4 +90,8 @@ public abstract class Game {
      * @throws PoseImpossibleException Si le placement du pion est impossible.
      */
     public abstract Puissance4.Status poserPions(int indice) throws PoseImpossibleException;
+
+
+    public abstract boolean coupValide(int indice);
 }
+
