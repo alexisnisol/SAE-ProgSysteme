@@ -93,24 +93,24 @@ public class Server {
             System.out.println("Client " + player.getName() + " déconnecté.");
             player.setAvailable(true);
             Game game = this.gamesList.get(player.getIdGame());
-        if (game != null) {
-            Player otherPlayer = null;
-            for (Player p : game.getPlayers()) {
-                if (!p.equals(player)) {
-                    otherPlayer = p;
-                    break;
+            if (game != null) {
+                Player otherPlayer = null;
+                for (Player p : game.getPlayers()) {
+                    if (!p.equals(player)) {
+                        otherPlayer = p;
+                        break;
+                    }
+                }
+
+                if (otherPlayer != null) {
+                    otherPlayer.getClientHandler().sendMessage("Votre adversaire s'est déconnecté. Vous avez gagné par forfait !");
+                    System.out.println("Message envoyé à " + otherPlayer.getName());
+                    returnToLobby(this.gamesList.get(player.getIdGame()), otherPlayer);
                 }
             }
-
-            if (otherPlayer != null) {
-                otherPlayer.getClientHandler().sendMessage("Votre adversaire s'est déconnecté. Vous avez gagné par forfait !");
-                System.out.println("Message envoyé à " + otherPlayer.getName());
-            }}
         } else {
             System.out.println("Déconnexion d'un joueur non enregistré.");
         }
-        returnToLobby(this.gamesList.get(player.getIdGame()));
-
         return Constant.STATUS_OK;
     }
 
@@ -181,7 +181,13 @@ public class Server {
 
         return this.requete.getInfoPlayer(target);
     }
-
+    
+    /**
+     * Récupère l'historique d'un joueur
+     * @param source Joueur demandant l'historique
+     * @param target Nom du joueur cible
+     * @return Historique du joueur
+     */
     public String historyPlayer(Player source, String target) {
         if (!source.isAvailable()) {
             return Constant.STATUS_ERR + " Vous ne pouvez pas demander l'historique d'un joueur";
@@ -218,16 +224,17 @@ public class Server {
 
             Puissance4.Status status = game.poserPions(Integer.parseInt(column));
             sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.PLAY, column);
+            game.getPlayer(game.getJoueurActuel()).getClientHandler().sendMessage("C'est à votre tour !");
 
             if (status == Puissance4.Status.GAGNE) {
                 sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.END_GAMES_VICTORY);
-                String joueurGagnant = game.getPlayer(game.getJoueurActuel()).getName();
+                Player joueurGagnant = game.getPlayer(game.getJoueurActuel());
                 System.out.println("Le joueur " + joueurGagnant + " a gagné la partie.");
-                returnToLobby(game);
+                returnToLobby(game, joueurGagnant);
             } else if (status == Puissance4.Status.NULL) {
                 sendGameStatus(game, ClientProtocolRegistry.TypeProtocol.END_GAMES_DRAW);
                 System.out.println("Match nul. Tous les joueurs retournent au lobby.");
-                returnToLobby(game);
+                returnToLobby(game, null);
             }
 
 
@@ -241,6 +248,12 @@ public class Server {
         return Constant.STATUS_EMPTY;
     }
 
+    /**
+     * Crée une nouvelle partie entre deux joueurs.
+     * @param player1 Joueur 1
+     * @param player2 Joueur 2
+     * @return Statut de la création de la partie (EMPTY ou ERR)
+     */
     private String createGame(Player player1, Player player2) {
         Game game = new Puissance4();
         if (player1.setInGame(game) && player2.setInGame(game)) {
@@ -256,6 +269,12 @@ public class Server {
         return Constant.STATUS_EMPTY;
     }
 
+    /**
+     * Envoie le statut de la partie à tous les joueurs. Si la partie est terminée, envoie un message de victoire/défaite.
+     * @param game Partie en cours
+     * @param typeProtocol Type de protocole à envoyer
+     * @param args Arguments à envoyer
+     */
     private void sendGameStatus(Game game, ClientProtocolRegistry.TypeProtocol typeProtocol, String... args) {
         if (typeProtocol == ClientProtocolRegistry.TypeProtocol.END_GAMES_VICTORY) {
             for (Player player : game.getPlayers()) {
@@ -311,24 +330,55 @@ public class Server {
         return response.toString();
     }
 
-    public void returnToLobby(Game game) {
-        try{
+    /**
+     * Retourne un joueur au lobby après une partie.
+     *
+     * @param game Partie terminée.
+     * @param gagnant Joueur gagnant, ou null en cas de match nul.
+     */
+    public void returnToLobby(Game game, Player gagnant) {
+        try {
 
-        for (Player player : game.getPlayers()) {
-            if(!player.isAvailable()){ 
-                player.setAvailable(true);
-                this.playersList.put(player.getName(), player);
+            // Ajoute la partie à la base de données
+            if(gagnant != null) {
+                String joueurGagnant = gagnant.getName();
+                String joueurPerdant = "";
+                for (Player p : game.getPlayers()) {
+                    if (!p.getName().equals(joueurGagnant)) {
+                        joueurPerdant = p.getName();
+                    }
+                }
 
-                player.getClientHandler().sendMessage("Vous êtes retourné au lobby.");
-        }}
-        this.gamesList.remove(game.getId());
-     }
-        catch (NullPointerException e) {
+                this.requete.insertPartie(joueurGagnant, joueurPerdant, joueurGagnant);
+            } else {
+                try {
+                    this.requete.insertPartie(game.getPlayers().get(0).getName(), game.getPlayers().get(1).getName(), null);
+                } catch (Exception e) {
+                    System.out.println("Erreur lors de l'insertion de la partie");
+                }
+            }
+
+            // Retourne les joueurs au lobby
+            for (Player player : game.getPlayers()) {
+                if (!player.isAvailable()) {
+                    player.setAvailable(true);
+                    this.playersList.put(player.getName(), player);
+
+                    player.getClientHandler().sendMessage("Vous êtes retourné au lobby.");
+                }
+            }
+            this.gamesList.remove(game.getId());
+        } catch (NullPointerException e) {
             System.out.println("Plus aucun joueur connecté.");
-    }
+        }
     }
 
 
+    /**
+     * Récupère la liste des commandes disponibles.
+     *
+     * @return la liste des commandes disponibles.
+     */
     public String getHelp() {
         StringBuilder response = new StringBuilder(Constant.STATUS_OK + " Liste des commandes : ");
         ServerProtocolRegistry.getAllCommands().forEach(name -> response.append(name).append(" - "));
